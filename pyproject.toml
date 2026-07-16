@@ -1,0 +1,15 @@
+[project]
+name = "psina-bot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "aiogram>=3.29.1",
+    "alembic>=1.18.5",
+    "asyncpg>=0.31.0",
+    "httpx>=0.28.1",
+    "pydantic-settings>=2.14.2",
+    "redis>=8.0.1",
+    "sqlalchemy[asyncio]>=2.0.51",
+]
