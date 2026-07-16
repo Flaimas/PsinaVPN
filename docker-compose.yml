@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   db:
     image: postgres
@@ -6,10 +5,24 @@ services:
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-admin}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-admin}
+      - POSTGRES_DB=${DB_NAME:-postgres}
     ports:
-      -5432:5432
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
+  pgadmin:
+    image: dpage/pgadmin4:9.15.0
+    depends_on:
+      - db
+    restart: always
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@mail.ru
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
   redis:
     image: redis:8.6.4
     restart: always
@@ -20,3 +33,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  pgadmin_data:
