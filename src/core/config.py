@@ -8,6 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 class Settings(BaseSettings):
     BOT_TOKEN: str
     ADMIN_IDS: str
+    PROXY_URL: str | None = None
 
     DB_NAME: str
     DB_USER: str
@@ -20,6 +21,7 @@ class Settings(BaseSettings):
     REDIS_PORT: int = 6379
 
     LOG_LEVEL: str = "DEBUG"
+    START_BALANCE: float = 0.0
 
     @computed_field
     @property
