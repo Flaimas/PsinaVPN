@@ -1,9 +1,6 @@
 from sqlalchemy import select, update
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.models.subscription import Subscription
-from src.database.models.user import User
-from sqlalchemy.dialects.postgresql import insert
 from typing import Literal
 
 class SubscriptionRepository:
