@@ -8,6 +8,15 @@ class UserRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    async def get_user_by_tg_id(self, telegram_id: int) -> User | None:
+        """Возвращает пользователя с переданным telegram_id"""
+        stmt = (
+            select(User)
+            .where(User.telegram_id == telegram_id)
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
     async def get_or_create_user(self, telegram_id: int, username: str | None) -> User:
         """Возвращает пользователя, если его нет — создает"""
         insert_stmt = (
