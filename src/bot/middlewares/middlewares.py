@@ -17,6 +17,11 @@ class DbSessionMiddleware(BaseMiddleware):
         data: Dict[str, Any]
     ) -> Any:
         async with self.session_pool() as session:
-            user_repo = UserRepository(session)
-            data["user_repo"] = user_repo
-            return await handler(event, data)
+            data["user_repo"] = UserRepository(session)
+            try:
+                result = await handler(event, data)
+                await session.commit()
+                return result
+            except Exception as e:
+                await session.rollback()
+                raise e
