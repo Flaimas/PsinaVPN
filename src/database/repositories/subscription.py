@@ -1,4 +1,5 @@
-from sqlalchemy import select, update
+from sqlalchemy import select, update, delete
+from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.models.subscription import Subscription
 from typing import Literal
@@ -17,6 +18,13 @@ class SubscriptionRepository:
         await self.session.flush()
         return subscription
     
+    async def delete_subscription(self, sub_id: int) -> None:
+        stmt = (
+            delete(Subscription)
+            .where(Subscription.id == sub_id)
+        )
+        await self.session.execute(stmt)
+    
     async def get_active_subscriptions_by_user(
         self,
         user_id: int, 
@@ -26,6 +34,7 @@ class SubscriptionRepository:
         if is_active != "all":
             is_active_bool = (is_active == "active")
             stmt = stmt.where(Subscription.is_active == is_active_bool)
+        stmt = stmt.options(joinedload(Subscription.tariff), joinedload(Subscription.user))
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
     
