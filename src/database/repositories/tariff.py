@@ -1,0 +1,23 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from src.database.models.tariff import Tariff
+
+class TariffRepository:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def get_tariffs(self, is_active: bool = True) -> list[Tariff]:
+        stmt = (
+            select(Tariff)
+            .where(Tariff.is_active == is_active)
+        )
+        result = await self.session.execute(stmt)
+        return result.scalars().all()
+
+    async def get_tariff_by_slug(self, slug: str) -> Tariff:
+        stmt = (
+            select(Tariff)
+            .where(Tariff.is_active == True, Tariff.slug == slug)
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
