@@ -7,7 +7,9 @@ class Subscription(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    tariff_id: Mapped[int] = mapped_column(ForeignKey("tariffs.id"))
     sub_url: Mapped[str]
     is_active: Mapped[bool] = mapped_column(default=True, server_default="true")
 
     user: Mapped["User"] = relationship(back_populates="subscriptions")
+    tariff: Mapped["Tariff"] = relationship(back_populates="subscriptions")
