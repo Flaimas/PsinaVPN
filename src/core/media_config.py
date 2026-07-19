@@ -1,0 +1,1 @@
+DEFAULT_PHOTO = "https://i.pinimg.com/736x/5b/15/3d/5b153d7723744d87ee5fef04930079a5.jpg"
