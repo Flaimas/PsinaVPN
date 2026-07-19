@@ -17,23 +17,22 @@ class UserRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_or_create_user(self, telegram_id: int, username: str | None) -> User:
-        """Возвращает пользователя, если его нет — создает"""
-        insert_stmt = (
-            insert(User)
-            .values(telegram_id=telegram_id, username=username)
+    async def get_or_create_user(self, telegram_id: int, username: str | None) -> tuple[User, bool]:
+        """
+        Возвращает кортеж (User, bool).
+        Если пользователь уже был в базе, возвращает (user, False).
+        Если пользователя не было, создает его и возвращает (user, True).
+        """
+        user = await self.get_user_by_tg_id(telegram_id=telegram_id)
+        if user:
+            return user, False
+        user = User(
+            telegram_id=telegram_id,
+            username=username
         )
-
-        upsert_stmt = (
-            insert_stmt.on_conflict_do_update(
-                index_elements=[User.telegram_id],
-                set_={"username": username}
-            )
-            .returning(User)
-        )
-
-        result = await self.session.execute(upsert_stmt)
-        return result.scalar_one()
+        self.session.add(user)
+        await self.session.flush()
+        return user, True
 
     async def update_balance(self, telegram_id: int, new_balance: float) -> bool:
         """Обновляет баланс пользователя. Возвращает True, если запись была обновлена"""
