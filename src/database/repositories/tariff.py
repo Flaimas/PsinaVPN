@@ -5,6 +5,17 @@ from src.database.models.tariff import Tariff
 class TariffRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
+    
+    def calculate_period_price(self, price: int, period: int) -> tuple[int, int]:
+        price_full_period = (period / 30) * int(price)
+        if period > 60:
+            discount = 0.20
+        elif period > 30:
+            discount = 0.10
+        else:
+            discount = 0
+        
+        return int(price_full_period), int(price_full_period - (discount * price_full_period))
 
     async def get_tariffs(self, is_active: bool = True) -> list[Tariff]:
         stmt = (

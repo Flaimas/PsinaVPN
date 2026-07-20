@@ -3,16 +3,27 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.models.subscription import Subscription
 from typing import Literal
+from datetime import datetime
 
 class SubscriptionRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def add_subscription(self, user_id: int, sub_url: str, is_active: bool = True) -> Subscription:
+    async def add_subscription(
+        self, 
+        user_id: int,
+        tariff_id: int, 
+        sub_url: str,
+        expired_at: datetime | None, 
+        is_active: bool = True
+    ) -> Subscription:
+        
         subscription = Subscription(
-            user_id=user_id, 
+            user_id=user_id,
+            tariff_id=tariff_id, 
             sub_url=sub_url, 
-            is_active=is_active
+            is_active=is_active,
+            expired_at=expired_at
         )
         self.session.add(subscription)
         await self.session.flush()

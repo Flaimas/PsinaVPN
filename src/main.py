@@ -7,6 +7,8 @@ from src.bot.middlewares.middlewares import DbSessionMiddleware, InlineKeyboards
 from src.database.connection import session_factory
 from src.bot.handlers import handlers_router
 from src.bot.keyboards.main_kb import keyboards
+from aiogram.fsm.storage.redis import RedisStorage
+from redis.asyncio import Redis
 
 async def main():
     proxy_session = None
@@ -19,8 +21,16 @@ async def main():
         session=proxy_session,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML)
     )
-    
-    dp = Dispatcher()
+
+    redis_client = Redis(
+        host="localhost", 
+        port=6379,
+        password=settings.REDIS_PASSWORD, 
+        decode_responses=True
+    )
+    storage = RedisStorage(redis_client)
+
+    dp = Dispatcher(storage=storage)
     dp.update.outer_middleware(DbSessionMiddleware(session_factory))
     dp.message.middleware.register(InlineKeyboardsMiddleware(keyboards))
     dp.callback_query.middleware.register(InlineKeyboardsMiddleware(keyboards))

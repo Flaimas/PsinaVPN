@@ -5,6 +5,8 @@ from src.core.media_config import DEFAULT_PHOTO
 from src.database.repositories.user import UserRepository
 from src.database.repositories.subscription import SubscriptionRepository
 from src.bot.keyboards.main_kb import InlineKeyboards
+from src.bot.states import OrderTariffStates
+from aiogram.fsm.context import FSMContext
 
 router = Router()
 
@@ -13,7 +15,10 @@ async def cmd_start(
     message: Message, 
     user_repo: UserRepository, 
     sub_repo: SubscriptionRepository, 
-    kb: InlineKeyboards):
+    kb: InlineKeyboards,
+    state: FSMContext
+):
+    await state.clear()
 
     user, is_create = await user_repo.get_or_create_user(
         telegram_id=message.from_user.id,
@@ -55,7 +60,10 @@ async def callback_start(
     callback: CallbackQuery, 
     user_repo: UserRepository, 
     sub_repo: SubscriptionRepository, 
-    kb: InlineKeyboards):
+    kb: InlineKeyboards,
+    state: FSMContext
+):
+    await state.clear()
 
     user, is_create = await user_repo.get_or_create_user(
         telegram_id=callback.from_user.id,

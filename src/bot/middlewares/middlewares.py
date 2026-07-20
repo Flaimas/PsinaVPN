@@ -3,6 +3,7 @@ from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
+from src.services.payment.payment import PaymentService
 from src.database.repositories.tariff import TariffRepository
 from src.bot.keyboards.main_kb import InlineKeyboards
 from src.services.vpn.mock import MockVPNClient
@@ -24,7 +25,7 @@ class DbSessionMiddleware(BaseMiddleware):
             data["tariff_repo"] = TariffRepository(session)
             data["user_repo"] = UserRepository(session)
             data["sub_repo"] = SubscriptionRepository(session)
-            data["vpn_client"] =  MockVPNClient()
+            data["payment_service"] =  PaymentService(session=session, vpn_client=MockVPNClient())
             try:
                 result = await handler(event, data)
                 await session.commit()

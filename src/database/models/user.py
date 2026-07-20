@@ -12,7 +12,7 @@ class User(Base):
     username: Mapped[str | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        server_default=func.now()
+        server_default=func.timezone('utc', func.now())
     )
     balance: Mapped[float] = mapped_column(
         default=settings.START_BALANCE, 
