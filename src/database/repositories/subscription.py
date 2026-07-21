@@ -29,30 +29,40 @@ class SubscriptionRepository:
         await self.session.flush()
         return subscription
     
-    async def delete_subscription(self, sub_id: int) -> None:
+    async def delete_subscription(self, sub_id: int) -> bool:
         stmt = (
             delete(Subscription)
             .where(Subscription.id == sub_id)
         )
-        await self.session.execute(stmt)
+        result = await self.session.execute(stmt)
+        return result.rowcount > 0
     
-    async def get_active_subscriptions_by_user(
+    async def get_subscriptions_by_user(
         self,
         user_id: int, 
-        is_active: Literal["all", "active", "inactive"] = "all"
+        is_active: bool | None = None,
+        load_user: bool = False,
+        load_tariff: bool = False 
     ) -> list[Subscription]:
         stmt = select(Subscription).where(Subscription.user_id == user_id)
-        if is_active != "all":
-            is_active_bool = (is_active == "active")
-            stmt = stmt.where(Subscription.is_active == is_active_bool)
-        stmt = stmt.options(joinedload(Subscription.tariff), joinedload(Subscription.user))
+
+        if is_active is not None:
+            stmt = stmt.where(Subscription.is_active == is_active)
+        
+        if load_tariff:
+            stmt = stmt.options(joinedload(Subscription.tariff))
+
+        if load_user:
+            stmt = stmt.options(joinedload(Subscription.user))
+
         result = await self.session.execute(stmt)
-        return list(result.scalars().all())
+        return list(result.scalars().unique().all())
     
-    async def deactivate_subscription(self, sub_id: int) -> None:
+    async def deactivate_subscription(self, sub_id: int) -> bool:
         stmt = (
             update(Subscription)
             .where(Subscription.id == sub_id)
             .values(is_active=False)
         )
-        await self.session.execute(stmt)
+        result =await self.session.execute(stmt)
+        return result.rowcount > 0
