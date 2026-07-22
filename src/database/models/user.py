@@ -19,5 +19,6 @@ class User(Base):
         server_default="0.0",
         nullable=False
     )
+    is_banned: Mapped[bool] = mapped_column(nullable=False, default=False, server_default='false')
 
     subscriptions: Mapped[list["Subscription"]] = relationship(back_populates="user")
