@@ -35,3 +35,11 @@ class UserRepository:
         
         result = await self.session.execute(query)
         return result.rowcount > 0
+    
+    async def get_banned_tg_user_ids(self) -> list[int]:
+        """Возвращает список всех забаненных пользователей"""
+        stmt = (
+            select(User.telegram_id).where(User.is_banned == True)
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
