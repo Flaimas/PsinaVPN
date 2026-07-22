@@ -20,10 +20,15 @@ async def cmd_start(
 ):
     await state.clear()
 
-    user, is_create = await user_repo.get_or_create_user(
-        telegram_id=message.from_user.id,
-        username=message.from_user.username
-    )
+    user = await user_repo.get_user_by_tg_id(telegram_id=message.from_user.id)
+    is_create = False
+    if user is None:
+        user = await user_repo.create_user(
+            telegram_id=message.from_user.id,
+            username=message.from_user.username
+        )
+        is_create = True
+
     if is_create:
         await message.answer_photo(
                 photo=DEFAULT_PHOTO,
@@ -36,7 +41,7 @@ async def cmd_start(
                 reply_markup=kb.get_main_inline_keyboard()
             )
     else:
-        user_subscriptions = await sub_repo.get_active_subscriptions_by_user(user.id)
+        user_subscriptions = await sub_repo.get_subscriptions_by_user(user_id=user.id, load_tariff=True)
         if user_subscriptions:
             subscriptions = "\n".join(
                 [f"{sub.tariff.name} - {'Активна' if sub.is_active else 'Неактивна'}" for sub in user_subscriptions]
@@ -65,11 +70,12 @@ async def callback_start(
 ):
     await state.clear()
 
-    user, is_create = await user_repo.get_or_create_user(
-        telegram_id=callback.from_user.id,
-        username=callback.from_user.username
-    )
-    user_subscriptions = await sub_repo.get_active_subscriptions_by_user(user.id)
+    user = await user_repo.get_user_by_tg_id(telegram_id=callback.from_user.id)
+    if user is None:
+        await callback.answer("Профиль не найден. Пожалуйста, введите /start", show_alert=True)
+        return
+    
+    user_subscriptions = await sub_repo.get_subscriptions_by_user(user.id)
     if user_subscriptions:
         subscriptions = "\n".join(
             [f"{sub.tariff.name} - {'Активна' if sub.is_active else 'Неактивна'}" for sub in user_subscriptions]
