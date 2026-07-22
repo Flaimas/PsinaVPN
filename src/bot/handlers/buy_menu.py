@@ -1,5 +1,6 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
+from src.services.tariff import TariffService
 from src.core.media_config import DEFAULT_PHOTO
 from src.database.repositories.tariff import TariffRepository
 from src.bot.keyboards.main_kb import InlineKeyboards
@@ -52,11 +53,13 @@ async def price_tariff_menu(
     callback: CallbackQuery,
     tariff_repo: TariffRepository, 
     kb: InlineKeyboards,
+    tariff_service: TariffService,
     state: FSMContext
 ):
     
     slug = callback.data.split(":")[1]
     tariff = await tariff_repo.get_tariff_by_slug(slug)
+    options = tariff_service.calculate_period_price(price=tariff.price)
     text = f"Выберите срок действия подписки."
 
     await state.set_state(OrderTariffStates.choosing_period)
@@ -64,7 +67,7 @@ async def price_tariff_menu(
 
     await callback.message.edit_media(
         media=kb.get_inline_media(media=DEFAULT_PHOTO, caption=text),
-        reply_markup=kb.get_tariff_prices(tariff, tariff_repo)
+        reply_markup=kb.get_tariff_prices(options)
     )
     await callback.answer()
 

@@ -1,5 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup, InputMediaPhoto
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from src.scheams.tariff import TariffOption
 from src.database.repositories.tariff import TariffRepository
 from src.database.models.tariff import Tariff
 
@@ -22,29 +23,30 @@ class InlineKeyboards:
     def get_tariffs_keyboard(self, database_tariffs: list[Tariff]) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
         for tariff in database_tariffs:
-            builder.button(text=f"{tariff.name} - {int(tariff.price)} руб.", callback_data=f"price:{tariff.slug}")
+            text=f"{tariff.name} - {int(tariff.price)} руб."
+            builder.button(
+                text=text,
+                callback_data=f"price:{tariff.slug}"
+            )
         builder.button(text="Назад", callback_data="start")
         builder.adjust(1)
         return builder.as_markup()
 
-    def get_tariff_prices(self, database_tariff: Tariff, tariff_repo: TariffRepository) -> InlineKeyboardMarkup:
+    def get_tariff_prices(self, options: list[TariffOption]) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
-        price = database_tariff.price
+
+        for opt in options:
+            if opt.discount_percent > 0:
+                text = f"{opt.months} мес. {opt.discount_price} руб. -{opt.discount_percent}%"
+            else:
+                text = f"{opt.months} мес. - {opt.base_price} руб."
+            builder.button(
+                text=text,
+                callback_data=f"buy_tariff:{opt.months}"
+            )
         builder.button(
-            text=f"30 дней - {tariff_repo.calculate_period_price(price=price, period=30)[-1]} руб. -0%", 
-            callback_data=f"buy_tariff:30"
-        )
-        builder.button(
-            text=f"60 дней - {tariff_repo.calculate_period_price(price=price, period=60)[-1]} руб. -10%", 
-            callback_data=f"buy_tariff:60"
-        )
-        builder.button(
-            text=f"90 дней - {tariff_repo.calculate_period_price(price=price, period=90)[-1]} руб. -20%", 
-            callback_data=f"buy_tariff:90"
-        )
-        builder.button(
-            text=f"Назад к выбору тарифа", 
-            callback_data=f"tariffs"
+            text="Назад",
+            callback_data="back_to_tariffs"
         )
         builder.adjust(1)
         return builder.as_markup()

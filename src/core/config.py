@@ -1,6 +1,6 @@
 from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import computed_field
+from pydantic import computed_field, Field
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -22,6 +22,11 @@ class Settings(BaseSettings):
 
     LOG_LEVEL: str = "DEBUG"
     START_BALANCE: float = 0.0
+
+    MONTHS: list[int] = [1, 3, 6]
+    DISCOUNT_FOR_MONTH: list[float] | None = None
+    STEP_DISCOUNT: float = Field(default=0.10, ge=0.0, lt=1.0)
+    MAX_DISCOUNT: float = Field(default=0.5, gt=0.0, lt=1.0)
 
     @computed_field
     @property
