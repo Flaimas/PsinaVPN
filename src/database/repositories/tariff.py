@@ -11,9 +11,9 @@ class TariffRepository:
 
         if is_active is not None:
             stmt = stmt.where(Tariff.is_active == is_active)
-
+        stmt = stmt.order_by(Tariff.price)
         result = await self.session.execute(stmt)
-        return result.scalars().all()
+        return list(result.scalars().all())
 
     async def get_tariff_by_slug(self, slug: str, is_active: bool = True) -> Tariff:
         stmt = (
