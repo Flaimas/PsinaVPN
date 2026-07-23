@@ -26,7 +26,7 @@ class InlineKeyboards:
             text=f"{tariff.name} - {int(tariff.price)} руб."
             builder.button(
                 text=text,
-                callback_data=f"price:{tariff.slug}"
+                callback_data=f"prices_tariff:{tariff.slug}"
             )
         builder.button(text="Назад", callback_data="start")
         builder.adjust(1)
@@ -46,15 +46,15 @@ class InlineKeyboards:
             )
         builder.button(
             text="Назад",
-            callback_data="back_to_tariffs"
+            callback_data="tariffs"
         )
         builder.adjust(1)
         return builder.as_markup()
     
-    def buy_tariff_menu_kb(self) -> InlineKeyboardMarkup:
+    def buy_tariff_menu_kb(self, slug: str) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
         builder.button(text="Оплатить", callback_data="buy")
-        builder.button(text="Изменить срок", callback_data=f"change_period")
+        builder.button(text="Изменить срок", callback_data=f"prices_tariff:{slug}")
         builder.button(text="Отменить", callback_data="start")
         builder.adjust(1)
         return builder.as_markup()

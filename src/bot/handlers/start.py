@@ -75,7 +75,7 @@ async def callback_start(
         await callback.answer("Профиль не найден. Пожалуйста, введите /start", show_alert=True)
         return
     
-    user_subscriptions = await sub_repo.get_subscriptions_by_user(user.id)
+    user_subscriptions = await sub_repo.get_subscriptions_by_user(user.id, load_tariff=True)
     if user_subscriptions:
         subscriptions = "\n".join(
             [f"{sub.tariff.name} - {'Активна' if sub.is_active else 'Неактивна'}" for sub in user_subscriptions]
