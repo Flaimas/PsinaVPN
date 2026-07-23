@@ -57,3 +57,12 @@ class TariffService:
 
         logger.debug("Список цен успешно посчитан! prices={}", prices)
         return prices
+
+    def get_option_for_month(self, price: int, target_month: int):
+        options = self.calculate_period_price(price=price)
+        for opt in options:
+            if opt.months == target_month:
+                return opt
+        error_msg = f"Период {target_month} мес. не найден в доступных опциях {self.months}"
+        logger.error(error_msg)
+        raise ValueError(error_msg)
