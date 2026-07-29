@@ -9,9 +9,22 @@ dependencies = [
     "aiohttp-socks>=0.11.0",
     "alembic>=1.18.5",
     "asyncpg>=0.31.0",
+    "fastapi>=0.140.1",
     "httpx>=0.28.1",
     "loguru>=0.7.3",
     "pydantic-settings>=2.14.2",
+    "python-dateutil>=2.9.0.post0",
     "redis>=8.0.1",
     "sqlalchemy[asyncio]>=2.0.51",
+    "uvicorn>=0.51.0",
+    "yookassa>=3.11.0",
+]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.params.Depends",
+    "fastapi.Query",
+    "fastapi.Header",
+    "fastapi.Path",
 ]

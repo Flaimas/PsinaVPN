@@ -1,68 +1,58 @@
 from loguru import logger
+
 from src.core.config import settings
 from src.scheams.tariff import TariffOption
+
 
 class TariffService:
     def __init__(
         self,
-        months: list | None = None,
-        discount_for_month: float | None = None,
-        step_discount: float | None = None,
-        max_discount: float | None = None
+        periods: list[int] | None = None,
+        discount_for_period: list[int] | None = None,
+        max_discount: int | None = None,
     ):
-        self.months = months or settings.MONTHS
-        self.discount_for_month = discount_for_month or settings.DISCOUNT_FOR_MONTH
-        self.step_discount = step_discount or settings.STEP_DISCOUNT
+        self.periods = periods or settings.PERIODS_SUBSCRIPTION
+        self.discount_for_period = (
+            discount_for_period
+            or settings.DISCOUNT_FOR_PERIOD
+            or [0] * len(self.periods)
+        )
         self.max_discount = max_discount or settings.MAX_DISCOUNT
 
-    def calculate_period_price(self, price: int) -> list[TariffOption]:
-        logger.debug("Расчет списка цен и скидки price={}", price)
-        if self.discount_for_month is not None:
-            if len(self.months) != len(self.discount_for_month):
-                error_msg = (
-                    f"Ошибка! Количество месяцев не соответствует длине списка с величиной скидки!"
-                    f"months={self.months}, discount_for_month={self.discount_for_month}"
-                )
-                logger.error(error_msg)
-                raise ValueError(error_msg)
-            discounts = self.discount_for_month
-
-        elif self.step_discount is not None:
-            if self.max_discount is None:
-                error_msg = "Переменная max_discount не задана!"
-                logger.error(error_msg)
-                raise ValueError(error_msg)
-            discounts = [
-                min((self.step_discount * i), self.max_discount)
-                for i in range(len(self.months))
-            ]
-        else:
-            error_msg = "Переменные step_discount или discount_for_month не заданы!"
-            logger.error(error_msg)
-            raise ValueError(error_msg)
-
-        prices = []
-        for month, discount in zip(self.months, discounts):
-            price_period = round(month * price)
-            price_period_from_discount = round(month * price * (1 - discount))
-            discount_percent = round(discount * 100)
-            prices.append(
-                TariffOption(
-                    months=month,
-                    base_price=price_period,
-                    discount_price=price_period_from_discount,
-                    discount_percent=discount_percent
-                )
+    def calculate_period_price(self, price: float) -> list[TariffOption]:
+        if not self.periods:
+            raise ValueError("Периоды подписки не были инициализированны!")
+        if len(self.periods) != len(self.discount_for_period):
+            raise ValueError(
+                "Спискок периодов подписки и список размера скидки для каждого периода должны быть одной длинны!"
             )
 
-        logger.debug("Список цен успешно посчитан! prices={}", prices)
-        return prices
+        if max(self.discount_for_period) > self.max_discount:
+            raise ValueError(
+                "Размер скидки привышает выставленный порог в {}%", self.max_discount
+            )
 
-    def get_option_for_month(self, price: int, target_month: int):
+        prices_for_periods = []
+        for period, period_discount in zip(self.periods, self.discount_for_period):
+            base_price = (period / 30) * price
+            discount_price = round(base_price * (1 - period_discount / 100))
+            prices_for_periods.append(
+                TariffOption(
+                    period_days=period,
+                    base_price=round(base_price),
+                    discount_price=discount_price,
+                    discount_percent=period_discount,
+                )
+            )
+        return prices_for_periods
+
+    def calculate_subscription_price(self, price: float, targert_period: int):
         options = self.calculate_period_price(price=price)
         for opt in options:
-            if opt.months == target_month:
+            if opt.period_days == targert_period:
                 return opt
-        error_msg = f"Период {target_month} мес. не найден в доступных опциях {self.months}"
+        error_msg = (
+            f"Период {targert_period} мес. не найден в доступных опциях {self.periods}"
+        )
         logger.error(error_msg)
         raise ValueError(error_msg)

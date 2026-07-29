@@ -1,55 +1,54 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from src.database.repositories.user import UserRepository
-from src.database.repositories.subscription import SubscriptionRepository
-from src.services.vpn.base import BaseVPNClient
-from src.database.models.user import User
-from datetime import datetime, timezone, timedelta
+from src.core.enums import PaymentProvider
+from src.database.models.invoice import Invoice
+from src.database.repositories.invoice import InvoiceRepository
+from src.scheams.tariff import CreateInvoiceDTO
+from src.services.payment.base import BasePaymentProvider
+from src.services.payment.exceptions import PaymentProviderUnavailableError
+
 
 class PaymentService:
-    def __init__(self, session: AsyncSession, vpn_client: BaseVPNClient):
-        self.session = session
-        self.user_repo = UserRepository(self.session)
-        self.sub_repo = SubscriptionRepository(self.session)
-        self.vpn_client = vpn_client
+    def __init__(
+        self,
+        invoice_repo: InvoiceRepository,
+        providers: dict[PaymentProvider, BasePaymentProvider],
+    ):
+        self.invoice_repo = invoice_repo
+        self._providers = providers
 
-    async def pay_with_balance(self, telegram_id: int, price: float) -> tuple[bool, User | None]:
-        """
-        Ищет юзера по его telegram_id и списывает сумму, переданную в этот метод.
-        Если у юзера достаточно денег - списывает их и возвращает True, иначе False
-        """
-        user = await self.user_repo.get_user_by_tg_id(telegram_id=telegram_id)
-        if not user or user.balance < price:
-            return False, None
-        
-        new_balance = user.balance - price
-        result = await self.user_repo.update_balance(telegram_id=telegram_id, new_balance=new_balance)
-        return result, user
+    def _get_provider(self, provider_type: PaymentProvider):
+        provider = self._providers.get(provider_type)
+        if not provider:
+            raise PaymentProviderUnavailableError("Ошибка, провайдер не обслуживается!")
+        return provider
 
-    async def buy_tariff(
-        self, 
-        telegram_id: int, 
-        price: float, 
-        tariff_id: int, 
-        period: int, 
-        activate: bool = True
-    ) -> bool:
-        status, user = await self.pay_with_balance(telegram_id=telegram_id, price=price)
+    async def successful_payment_process(
+        self, provider_payment_id: str
+    ) -> Invoice | None:
+        return await self.invoice_repo.mark_as_paid_if_pending(provider_payment_id)
 
-        if not status:
-            return False
-        
-        now = datetime.now(tz=timezone.utc)
-        days_to_add = timedelta(days=period)
-        future_date = now + days_to_add
-        
-        sub_url = await self.vpn_client.create_user(telegram_id=telegram_id)
+    async def create_invoice(
+        self,
+        provider_type: PaymentProvider,
+        amount: float,
+        period: int,
+        description: str,
+        user_id: int,
+        tariff_id: int,
+    ) -> tuple[Invoice, str]:
 
-        subscription = await self.sub_repo.add_subscription(
-            user_id=user.id,
-            tariff_id=tariff_id,
-            sub_url=sub_url,
-            expired_at=future_date,
-            is_active=activate
+        provider = self._get_provider(provider_type)
+
+        payment_data = await provider.create_payment(
+            amount=amount, description=description, user_id=user_id
         )
 
-        return bool(subscription)
+        invoice_dto = CreateInvoiceDTO(
+            user_id=user_id,
+            duration_days=period,
+            tariff_id=tariff_id,
+            provider=provider_type,
+            provider_payment_id=str(payment_data.invoice_id),
+            amount=amount,
+        )
+
+        return await self.invoice_repo.add_invoice(invoice_dto), payment_data.pay_url
