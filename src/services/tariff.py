@@ -46,13 +46,13 @@ class TariffService:
             )
         return prices_for_periods
 
-    def calculate_subscription_price(self, price: float, targert_period: int):
+    def calculate_subscription_price(self, price: float, target_period: int):
         options = self.calculate_period_price(price=price)
         for opt in options:
-            if opt.period_days == targert_period:
+            if opt.period_days == target_period:
                 return opt
         error_msg = (
-            f"Период {targert_period} мес. не найден в доступных опциях {self.periods}"
+            f"Период {target_period} мес. не найден в доступных опциях {self.periods}"
         )
         logger.error(error_msg)
         raise ValueError(error_msg)

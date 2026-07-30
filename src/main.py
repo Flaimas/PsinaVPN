@@ -86,7 +86,7 @@ async def lifespan(app: FastAPI):
     app.state.dp = dp
     app.state.providers = get_payment_providers()
     telegram_web_hook_url = (
-        "https://eynah-78-37-145-11.free.pinggy.net/webhooks/telegram"
+        "https://qtbmx-78-37-145-11.free.pinggy.net/webhooks/telegram"
     )
     await bot.set_webhook(
         url=telegram_web_hook_url,

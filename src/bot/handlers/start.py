@@ -5,6 +5,7 @@ from aiogram.types import CallbackQuery, Message
 
 from src.bot.keyboards import InlineKB
 from src.bot.utils.message import edit_callback_media
+from src.common.start_texts import start_texts
 from src.core.media_config import DEFAULT_PHOTO
 from src.database.repositories.subscription import SubscriptionRepository
 from src.database.repositories.user import UserRepository
@@ -32,14 +33,13 @@ async def cmd_start(
         is_create = True
 
     if is_create:
+        text = start_texts.WELCOME_NEW_USER.format(
+            username=user.username or "друг",
+            balance=int(user.balance),
+        )
         await message.answer_photo(
             photo=DEFAULT_PHOTO,
-            caption=(
-                f"🎉 <b>Привет, {user.username or 'друг'}!</b>\n"
-                f"Спасибо, что воспользовались услугами нашего сервиса!\n\n"
-                f"🎁 Вам выдан приветственный бонус в размере <code>{int(user.balance)}</code> руб.\n\n"
-                f"Что бы протестировать сервис перейдите в меню '🛍 Купить VPN'"
-            ),
+            caption=text,
             reply_markup=kb.start.get_main_inline_keyboard(),
         )
     else:
@@ -47,24 +47,22 @@ async def cmd_start(
             user_id=user.id, load_tariff=True
         )
         if user_subscriptions:
-            subscriptions = "\n".join(
-                [
-                    f"{sub.tariff.name} - {'Активна' if sub.is_active else 'Неактивна'}"
-                    for sub in user_subscriptions
-                ]
-            )
-            text_sub = f"🔑{'Твои подписки:' if len(user_subscriptions) > 1 else 'Твоя подписка:'} \n\n<code>{subscriptions}</code>"
+            text_sub = start_texts.format_subscriptions_start(user_subscriptions)
         else:
-            text_sub = "У тебя пока нет активных подписок. Ты можешь купить её в меню!"
+            text_sub = start_texts.NO_SUBSCRIPTIONS
+
+        text = start_texts.USER_CABINET.format(
+            username=message.from_user.username,
+            telegram_id=user.telegram_id,
+            balance=int(user.balance),
+            sub_info=text_sub,
+        )
         await message.answer_photo(
             photo=DEFAULT_PHOTO,
-            caption=(
-                f"👤 Кабинет пользователя\n\n"
-                f"🆔 Ваш ID: {user.telegram_id}\n"
-                f"💰 Баланс: <code>{int(user.balance)}</code> руб.\n"
-                f"{text_sub}"
+            caption=text,
+            reply_markup=kb.start.get_main_inline_keyboard(
+                subscriptions=user_subscriptions
             ),
-            reply_markup=kb.start.get_main_inline_keyboard(),
         )
 
 
@@ -80,30 +78,22 @@ async def callback_start(
 
     user = await user_repo.get_user_by_tg_id(telegram_id=callback.from_user.id)
     if user is None:
-        await callback.answer(
-            "Профиль не найден. Пожалуйста, введите /start", show_alert=True
-        )
+        await callback.answer(start_texts.PROFILE_NOT_FOUND, show_alert=True)
         return
 
     user_subscriptions = await sub_repo.get_subscriptions_by_user(
         user.id, load_tariff=True
     )
     if user_subscriptions:
-        subscriptions = "\n".join(
-            [
-                f"{sub.tariff.name} - {'Активна' if sub.is_active else 'Неактивна'}"
-                for sub in user_subscriptions
-            ]
-        )
-        text_sub = f"🔑{'Твои подписки:' if len(user_subscriptions) > 1 else 'Твоя подписка:'} \n\n<code>{subscriptions}</code>"
+        text_sub = start_texts.format_subscriptions_start(user_subscriptions)
     else:
-        text_sub = "У тебя пока нет активных подписок. Ты можешь купить её в меню!"
+        text_sub = start_texts.NO_SUBSCRIPTIONS
 
-    text = (
-        f"👤 Кабинет пользователя\n\n"
-        f"🆔 Ваш ID: {user.telegram_id}\n"
-        f"💰 Баланс: <code>{int(user.balance)}</code> руб.\n"
-        f"{text_sub}"
+    text = start_texts.USER_CABINET.format(
+        username=callback.from_user.username,
+        telegram_id=user.telegram_id,
+        balance=int(user.balance),
+        sub_info=text_sub,
     )
 
     await edit_callback_media(

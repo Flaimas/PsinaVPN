@@ -13,7 +13,7 @@ class SubscriptionInkineKeyBoard:
         for tariff in database_tariffs:
             text = f"{tariff.name} - {int(tariff.price)} руб."
             builder.button(text=text, callback_data=f"prices_tariff:{tariff.slug}")
-        builder.button(text="Назад", callback_data="start")
+        builder.button(text="↩︎ Назад", callback_data="start")
         builder.adjust(1)
         return builder.as_markup()
 
@@ -27,7 +27,7 @@ class SubscriptionInkineKeyBoard:
                 text = f"{opt.period_days} дней - {opt.base_price} руб."
             builder.button(text=text, callback_data=f"buy_tariff:{opt.period_days}")
 
-        builder.button(text="Назад", callback_data="tariffs")
+        builder.button(text="↩︎ Назад", callback_data="tariffs")
         builder.adjust(1)
         return builder.as_markup()
 

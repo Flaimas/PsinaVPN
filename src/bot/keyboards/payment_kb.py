@@ -24,30 +24,14 @@ class PaymentInlineKeyboard:
                 text=self.PROVIDER_TITLES[provider],
                 callback_data=PaymentProcessCallback(provider=provider),
             )
-        builder.button(text="Назад", callback_data=PricesTariffCallback(slug=slug))
         builder.button(text="Главное меню", callback_data="start")
-        builder.adjust(1)
-        return builder.as_markup()
-
-    def retry_payment(self) -> InlineKeyboardMarkup:
-        builder = InlineKeyboardBuilder()
-        builder.button(text="Повторить попытку", callback_data="buy")
-        builder.button(text="Главное меню", callback_data="start")
-        builder.adjust(1)
-        return builder.as_markup()
-
-    def succes_payment(self) -> InlineKeyboardMarkup:
-        builder = InlineKeyboardBuilder()
-        builder.button(
-            text="Как подключиться?", callback_data="ЗАГЛУШКА_ПОМОЩИ_ПОДКЛЮЧЕНИЯ"
-        )
-        builder.button(text="Главное меню", callback_data="start")
+        builder.button(text="↩︎ Назад", callback_data=PricesTariffCallback(slug=slug))
         builder.adjust(1)
         return builder.as_markup()
 
     def url_payment(self, url: str) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
         builder.button(text="Оплатить", url=url, style=ButtonStyle.SUCCESS)
-        builder.button(text="Главное меню", callback_data="start")
+        builder.button(text="Отмена", callback_data="start", style=ButtonStyle.DANGER)
         builder.adjust(1)
         return builder.as_markup()

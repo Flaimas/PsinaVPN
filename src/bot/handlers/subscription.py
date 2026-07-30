@@ -6,6 +6,7 @@ from src.bot.keyboards import InlineKB
 from src.bot.keyboards.callbacks import PricesTariffCallback
 from src.bot.states import OrderTariffStates
 from src.bot.utils.message import edit_callback_media
+from src.common.subscription_text import subscription_text
 from src.core.media_config import DEFAULT_PHOTO
 from src.database.repositories.tariff import TariffRepository
 from src.services.tariff import TariffService
@@ -24,7 +25,7 @@ async def tariffs_menu(
     await state.update_data(tariff_slug=None)
 
     tariffs = await tariff_repo.get_tariffs()
-    text = "Список тарифов доступые для покупки:"
+    text = subscription_text.TARIFFS
 
     await edit_callback_media(
         callback=callback,
