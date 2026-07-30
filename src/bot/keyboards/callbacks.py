@@ -13,3 +13,7 @@ class BuyTariffCallback(CallbackData, prefix="buy_tariff"):
 
 class PaymentProcessCallback(CallbackData, prefix="deposit"):
     provider: PaymentProvider
+
+
+class ManagmentSubCallback(CallbackData, prefix="sub_menu"):
+    subscription_id: int

@@ -1,17 +1,34 @@
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from src.bot.keyboards.callbacks import ManagmentSubCallback
+from src.database.models.subscription import Subscription
+
 
 class StartInlineKeyboard:
     def get_main_inline_keyboard(
-        self, subscriptions: list | None = None
+        self,
+        subscriptions: list[Subscription] | None = None,
     ) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
-        if not subscriptions:
-            builder.button(text="🛍️ Купить VPN", callback_data="tariffs")
-        else:
-            text = f"💎 Управление {'подпиской' if len(subscriptions) < 2 else 'подписками'}"
-            builder.button(text=text, callback_data="panel")
+        subs = subscriptions or []
+
+        match len(subs):
+            case 0:
+                builder.button(text="🛍️ Купить VPN", callback_data="tariffs")
+            case 1:
+                builder.button(
+                    text="💎 Управление подпиской",
+                    callback_data=ManagmentSubCallback(subscription_id=subs[0].id),
+                )
+                builder.button(text="Инструкции", callback_data="instructions")
+            case _:
+                builder.button(
+                    text="💎 Управление подписками",
+                    callback_data="select_sub_for_management",
+                )
+                builder.button(text="Инструкции", callback_data="instructions")
+
         builder.button(text="Помощь", callback_data="help")
         builder.adjust(1)
         return builder.as_markup()

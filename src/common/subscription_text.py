@@ -19,4 +19,15 @@ class SubscriptionText:
     )
 
 
+@dataclass(frozen=True)
+class SubManagementText:
+    SUB_MANAGMNET: str = (
+        "<b>Меню управления подпиской:</b>\n\n"
+        "Название: {sub_name}\n"
+        "Активна до: {expired_at}\n\n"
+        "Что бы скопировать ссылку нажмите на кнопку внизу"
+    )
+
+
 subscription_text = SubscriptionText()
+sub_managment_text = SubManagementText()

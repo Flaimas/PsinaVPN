@@ -1,4 +1,5 @@
 from aiogram import Router
+from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
@@ -17,7 +18,12 @@ from src.services.tariff import TariffService
 router = Router()
 
 
-@router.callback_query(BuyTariffCallback.filter(), OrderTariffStates.choosing_period)
+@router.callback_query(
+    BuyTariffCallback.filter(),
+    StateFilter(
+        OrderTariffStates.choosing_period, OrderTariffStates.extend_subscription
+    ),
+)
 async def buy_tariff_menu(
     callback: CallbackQuery,
     callback_data: BuyTariffCallback,
@@ -26,8 +32,9 @@ async def buy_tariff_menu(
     kb: InlineKB,
     state: FSMContext,
 ):
-    user_data = await state.get_data()
-    slug = user_data.get("tariff_slug")
+    state_data = await state.get_data()
+    slug = state_data.get("tariff_slug")
+    user_sub_id = state_data.get("user_sub_id")
 
     if not slug:
         await callback.answer(payment_texts.SESSION_EXPIRED, show_alert=True)
@@ -65,7 +72,9 @@ async def buy_tariff_menu(
     await callback.answer()
 
 
-@router.callback_query(PaymentProcessCallback.filter())
+@router.callback_query(
+    PaymentProcessCallback.filter(), OrderTariffStates.waiting_for_payment
+)
 async def payment_process(
     callback: CallbackQuery,
     callback_data: PaymentProcessCallback,

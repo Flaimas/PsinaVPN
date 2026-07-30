@@ -24,7 +24,7 @@ async def cmd_start(
     assert message.from_user is not None
     await state.clear()
 
-    user = await user_repo.get_user_by_tg_id(telegram_id=message.from_user.id)
+    user = await user_repo.get_user_with_subscriptions(telegram_id=message.from_user.id)
     is_create = False
     if user is None:
         user = await user_repo.create_user(
@@ -43,11 +43,8 @@ async def cmd_start(
             reply_markup=kb.start.get_main_inline_keyboard(),
         )
     else:
-        user_subscriptions = await sub_repo.get_subscriptions_by_user(
-            user_id=user.id, load_tariff=True
-        )
-        if user_subscriptions:
-            text_sub = start_texts.format_subscriptions_start(user_subscriptions)
+        if user.subscriptions:
+            text_sub = start_texts.format_subscriptions_start(user.subscriptions)
         else:
             text_sub = start_texts.NO_SUBSCRIPTIONS
 
@@ -61,7 +58,7 @@ async def cmd_start(
             photo=DEFAULT_PHOTO,
             caption=text,
             reply_markup=kb.start.get_main_inline_keyboard(
-                subscriptions=user_subscriptions
+                subscriptions=user.subscriptions
             ),
         )
 
@@ -70,22 +67,21 @@ async def cmd_start(
 async def callback_start(
     callback: CallbackQuery,
     user_repo: UserRepository,
-    sub_repo: SubscriptionRepository,
     kb: InlineKB,
     state: FSMContext,
 ):
     await state.clear()
 
-    user = await user_repo.get_user_by_tg_id(telegram_id=callback.from_user.id)
+    user = await user_repo.get_user_with_subscriptions(
+        telegram_id=callback.from_user.id
+    )
     if user is None:
         await callback.answer(start_texts.PROFILE_NOT_FOUND, show_alert=True)
         return
 
-    user_subscriptions = await sub_repo.get_subscriptions_by_user(
-        user.id, load_tariff=True
-    )
-    if user_subscriptions:
-        text_sub = start_texts.format_subscriptions_start(user_subscriptions)
+    user.subscriptions.sort(key=lambda sub: (sub.tariff.price, sub.tariff.id))
+    if user.subscriptions:
+        text_sub = start_texts.format_subscriptions_start(user.subscriptions)
     else:
         text_sub = start_texts.NO_SUBSCRIPTIONS
 
@@ -100,6 +96,8 @@ async def callback_start(
         callback=callback,
         media=DEFAULT_PHOTO,
         caption=text,
-        reply_markup=kb.start.get_main_inline_keyboard(),
+        reply_markup=kb.start.get_main_inline_keyboard(
+            subscriptions=user.subscriptions
+        ),
     )
     await callback.answer()

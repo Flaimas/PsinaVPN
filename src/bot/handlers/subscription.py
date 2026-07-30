@@ -49,6 +49,8 @@ async def prices_tariff_menu(
     slug = callback_data.slug
     tariff = await tariff_repo.get_tariff_by_slug(slug)
     options = tariff_service.calculate_period_price(price=tariff.price)
+    state_data = await state.get_data()
+    user_sub_id = state_data.get("user_sub_id")
     text = "Выберите срок действия подписки."
 
     await state.set_state(OrderTariffStates.choosing_period)
@@ -58,6 +60,6 @@ async def prices_tariff_menu(
         callback=callback,
         media=DEFAULT_PHOTO,
         caption=text,
-        reply_markup=kb.subscription.get_tariff_prices(options),
+        reply_markup=kb.subscription.get_tariff_prices(options, user_sub_id),
     )
     await callback.answer()

@@ -1,6 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from src.bot.keyboards.callbacks import ManagmentSubCallback
 from src.database.models.tariff import Tariff
 from src.scheams.tariff import TariffOption
 
@@ -17,7 +18,9 @@ class SubscriptionInkineKeyBoard:
         builder.adjust(1)
         return builder.as_markup()
 
-    def get_tariff_prices(self, options: list[TariffOption]) -> InlineKeyboardMarkup:
+    def get_tariff_prices(
+        self, options: list[TariffOption], user_sub_id: int | None
+    ) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
 
         for opt in options:
@@ -27,7 +30,13 @@ class SubscriptionInkineKeyBoard:
                 text = f"{opt.period_days} дней - {opt.base_price} руб."
             builder.button(text=text, callback_data=f"buy_tariff:{opt.period_days}")
 
-        builder.button(text="↩︎ Назад", callback_data="tariffs")
+        if user_sub_id:
+            builder.button(
+                text="↩︎ Назад",
+                callback_data=ManagmentSubCallback(subscription_id=user_sub_id),
+            )
+        else:
+            builder.button(text="↩︎ Назад", callback_data="tariffs")
         builder.adjust(1)
         return builder.as_markup()
 
