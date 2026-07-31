@@ -35,6 +35,7 @@ class InvoiceRepository:
             .where(Invoice.id == invoice_id)
             .options(joinedload(Invoice.tariff))
             .options(joinedload(Invoice.user))
+            .options(joinedload(Invoice.subscription))
         )
         result = await self.session.execute(query)
         return result.unique().scalar_one_or_none()

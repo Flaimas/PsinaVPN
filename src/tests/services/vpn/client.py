@@ -1,6 +1,10 @@
 import uuid
 
-from src.services.vpn.models import RemnawaveCreateUserRequest, RemnawaveUserResponse
+from src.services.vpn.models import (
+    RemnawaveCreateUserRequest,
+    RemnawaveUpdateUser,
+    RemnawaveUserResponse,
+)
 
 
 class FakeRemnawaveClient:
@@ -21,4 +25,12 @@ class FakeRemnawaveClient:
             telegram_id=payload.telegram_id,
             subscription_url=f"https://fake-vpn.local/sub/{random_uuid}",
             expire_at=payload.expire_at,
+        )
+
+    async def update_user(self, payload: RemnawaveUpdateUser):
+        return RemnawaveUserResponse(
+            uuid=payload.uuid,
+            status=payload.status,
+            expire_at=payload.expire_at,
+            subscription_url=f"https://fake-vpn.local/sub/{payload.uuid}",
         )

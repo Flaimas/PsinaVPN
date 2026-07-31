@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 from enum import Enum
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
@@ -35,6 +36,12 @@ class RemnawaveCreateUserRequest(RemnawaveBaseModel):
     expire_at: datetime
     traffic_limit_bytes: int = 0
     traffic_limit_strategy: TrafficLimitStrategy = TrafficLimitStrategy.NO_RESET
+    status: Status = Status.ACTIVE
+
+
+class RemnawaveUpdateUser(RemnawaveBaseModel):
+    uuid: UUID
+    expire_at: datetime
     status: Status = Status.ACTIVE
 
 

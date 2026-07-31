@@ -8,6 +8,7 @@ from src.bot.keyboards.callbacks import BuyTariffCallback, PaymentProcessCallbac
 from src.bot.states import OrderTariffStates
 from src.bot.utils.message import edit_callback_media
 from src.common.payment_texts import payment_texts
+from src.core.enums import InvoiceOperation
 from src.core.media_config import DEFAULT_PHOTO
 from src.database.repositories.tariff import TariffRepository
 from src.database.repositories.user import UserRepository
@@ -95,6 +96,7 @@ async def payment_process(
         return
 
     try:
+        operation = InvoiceOperation.EXTEND if user_sub_id else InvoiceOperation.BUY
         _, payment_url = await payment_service.create_invoice(
             tariff_id=int(tariff_id),
             period=int(period_days),
@@ -102,6 +104,8 @@ async def payment_process(
             amount=float(price),
             description=f"Пополнение для {callback.from_user.id}",
             user_id=user.id,
+            subscription_id=user_sub_id,
+            operation=operation,
         )
     except PaymentServiceError as e:
         await callback.answer(str(e), show_alert=True)

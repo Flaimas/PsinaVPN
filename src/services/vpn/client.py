@@ -1,5 +1,6 @@
 import json
 from typing import Any
+from uuid import UUID
 
 import httpx
 from httpx import AsyncClient, Response
@@ -16,6 +17,7 @@ from .exceptions import (
 )
 from .models import (
     RemnawaveCreateUserRequest,
+    RemnawaveUpdateUser,
     RemnawaveUserResponse,
 )
 
@@ -109,7 +111,7 @@ class RemnawaveClient:
         response = await self._send_request(
             method="POST",
             endpoint="/api/users",
-            json_data=payload.model_dump(mode="json"),
+            json_data=payload.model_dump(mode="json", exclude_none=True),
         )
         data = response.json()
         return RemnawaveUserResponse.model_validate(data.get("response", data))
@@ -121,7 +123,21 @@ class RemnawaveClient:
             return False
         return True
 
-    async def get_user_by_uuid(self, uuid: str):
-        response = await self._send_request(method="GET", endpoint=f"/api/users/{uuid}")
+    async def get_user_by_uuid(self, uuid: UUID) -> RemnawaveUserResponse | None:
+        try:
+            response = await self._send_request(
+                method="GET", endpoint=f"/api/users/{uuid}"
+            )
+            data = response.json()
+            return RemnawaveUserResponse.model_validate(data.get("response", data))
+        except RemnawaveNotFoundError:
+            return None
+
+    async def update_user(self, payload: RemnawaveUpdateUser) -> RemnawaveUserResponse:
+        response = await self._send_request(
+            method="PATCH",
+            endpoint="/api/users",
+            json_data=payload.model_dump(mode="json", exclude_none=True),
+        )
         data = response.json()
-        return RemnawaveUserResponse.model_dump(data.get("response", data))
+        return RemnawaveUserResponse.model_validate(data.get("response", data))

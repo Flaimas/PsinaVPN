@@ -38,7 +38,7 @@ async def yookassa_webhook(
     if not order:
         return {"status": "ok"}
 
-    await sub_service.issue_subscription(order.id)
+    await sub_service.process_paid_invoice(order.id)
 
 
 @router.post("/telegram")

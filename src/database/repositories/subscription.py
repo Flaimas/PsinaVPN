@@ -39,6 +39,11 @@ class SubscriptionRepository:
         result = await self.session.execute(stmt)
         return result.rowcount > 0  # type: ignore
 
+    async def update_subscription(self, sub_id: int, **kwargs):
+        stmt = update(Subscription).where(Subscription.id == sub_id).values(**kwargs)
+        result = await self.session.execute(stmt)
+        return result.rowcount > 0  # type: ignore
+
     async def get_subscriptions_by_user(
         self,
         user_id: int,

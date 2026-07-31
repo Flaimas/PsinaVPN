@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from src.core.enums import PaymentProvider, PaymentStatus
+from src.core.enums import InvoiceOperation, PaymentProvider, PaymentStatus
 
 
 # Базовый конфиг для всех DTO, чтобы они были неизменяемыми (frozen), как датаклассы
@@ -24,6 +24,8 @@ class CreateInvoiceDTO(StrictDTO):
     provider_payment_id: str
     amount: float
     duration_days: int
+    operation: InvoiceOperation
     status: PaymentStatus = PaymentStatus.PENDING
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     paid_at: datetime | None = None
+    subscription_id: int | None
