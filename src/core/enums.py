@@ -10,3 +10,8 @@ class PaymentStatus(str, Enum):
 class PaymentProvider(str, Enum):
     YOOKASSA = "yookassa"
     BALANCE = "balance"
+
+
+class InvoiceOperation(str, Enum):
+    BUY = "buy"
+    EXTEND = "extend"

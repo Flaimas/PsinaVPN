@@ -34,7 +34,6 @@ async def buy_tariff_menu(
 ):
     state_data = await state.get_data()
     slug = state_data.get("tariff_slug")
-    user_sub_id = state_data.get("user_sub_id")
 
     if not slug:
         await callback.answer(payment_texts.SESSION_EXPIRED, show_alert=True)
@@ -83,10 +82,11 @@ async def payment_process(
     user_repo: UserRepository,
     payment_service: PaymentService,
 ):
-    user_data = await state.get_data()
-    price = user_data.get("price")
-    tariff_id = user_data.get("tariff_id")
-    period_days = user_data.get("period")
+    state_data = await state.get_data()
+    price = state_data.get("price")
+    tariff_id = state_data.get("tariff_id")
+    period_days = state_data.get("period")
+    user_sub_id = state_data.get("user_sub_id")
 
     user = await user_repo.get_user_by_tg_id(telegram_id=callback.from_user.id)
 
