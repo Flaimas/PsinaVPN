@@ -1,4 +1,4 @@
-from src.core.enums import PaymentProvider
+from src.core.enums import InvoiceOperation, PaymentProvider
 from src.database.models.invoice import Invoice
 from src.database.repositories.invoice import InvoiceRepository
 from src.scheams.tariff import CreateInvoiceDTO
@@ -34,6 +34,8 @@ class PaymentService:
         description: str,
         user_id: int,
         tariff_id: int,
+        operation: InvoiceOperation,
+        subscription_id: int | None = None,
     ) -> tuple[Invoice, str]:
 
         provider = self._get_provider(provider_type)
@@ -49,6 +51,8 @@ class PaymentService:
             provider=provider_type,
             provider_payment_id=str(payment_data.invoice_id),
             amount=amount,
+            operation=operation,
+            subscription_id=subscription_id,
         )
 
         return await self.invoice_repo.add_invoice(invoice_dto), payment_data.pay_url

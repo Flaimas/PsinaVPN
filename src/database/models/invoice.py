@@ -8,11 +8,11 @@ from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.enums import InvoiceOperation, PaymentProvider, PaymentStatus
-from src.database.models.subscription import Subscription
 
 from .base import Base
 
 if TYPE_CHECKING:
+    from .subscription import Subscription
     from .tariff import Tariff
     from .user import User
 

@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING
 from sqlalchemy import UUID, DateTime, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from src.database.models.invoice import Invoice
+
 from .base import Base
 
 if TYPE_CHECKING:
@@ -32,3 +34,4 @@ class Subscription(Base):
 
     user: Mapped[User] = relationship(back_populates="subscriptions")
     tariff: Mapped[Tariff] = relationship(back_populates="subscriptions")
+    invoices: Mapped[list[Invoice]] = relationship(back_populates="subscription")
