@@ -6,6 +6,7 @@ from src.core.enums import PaymentProvider
 from src.database.connection import get_session
 from src.database.repositories.invoice import InvoiceRepository
 from src.database.repositories.subscription import SubscriptionRepository
+from src.services.notification import NotificationService
 from src.services.payment.base import BasePaymentProvider
 from src.services.payment.payment import PaymentService
 from src.services.payment.providers import get_payment_providers
@@ -37,11 +38,16 @@ def get_vpn_client(request: Request) -> RemnawaveClient:
 
 
 def get_subscription_service(
+    request: Request,
     session: AsyncSession = Depends(get_session),
     vpn_client: RemnawaveClient = Depends(get_vpn_client),
 ):
+    telegram_bot = request.app.state.bot
+    dp = request.app.state.dp
+
     return SubscriptionService(
         vpn_client=vpn_client,
         sub_repo=SubscriptionRepository(session),
         invoice_repo=InvoiceRepository(session),
+        notifier=NotificationService(bot=telegram_bot, dp=dp),
     )

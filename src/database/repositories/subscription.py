@@ -39,10 +39,17 @@ class SubscriptionRepository:
         result = await self.session.execute(stmt)
         return result.rowcount > 0  # type: ignore
 
-    async def update_subscription(self, sub_id: int, **kwargs):
-        stmt = update(Subscription).where(Subscription.id == sub_id).values(**kwargs)
+    async def update_expired_at_subscription(
+        self, sub_id: int, new_expired_at: datetime
+    ) -> Subscription:
+        stmt = (
+            update(Subscription)
+            .where(Subscription.id == sub_id)
+            .values(expired_at=new_expired_at)
+            .returning(Subscription)
+        )
         result = await self.session.execute(stmt)
-        return result.rowcount > 0  # type: ignore
+        return result.scalar_one()
 
     async def get_subscriptions_by_user(
         self,

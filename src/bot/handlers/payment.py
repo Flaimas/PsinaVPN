@@ -1,7 +1,7 @@
 from aiogram import Router
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, Message
 
 from src.bot.keyboards import InlineKB
 from src.bot.keyboards.callbacks import BuyTariffCallback, PaymentProcessCallback
@@ -111,10 +111,12 @@ async def payment_process(
         await callback.answer(str(e), show_alert=True)
         return
 
-    await edit_callback_media(
+    msg = await edit_callback_media(
         callback=callback,
         media=DEFAULT_PHOTO,
         caption=payment_texts.PAYMENT_LINK_CAPTION,
         reply_markup=kb.payment.url_payment(url=payment_url),
     )
+    if isinstance(msg, Message):
+        await state.update_data(payment_msg_id=msg.message_id)
     await callback.answer()

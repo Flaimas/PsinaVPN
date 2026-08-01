@@ -23,9 +23,7 @@ class Invoice(Base):
     user_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
-    tariff_id: Mapped[int | None] = mapped_column(
-        ForeignKey("tariffs.id", ondelete="SET NULL"), nullable=True
-    )
+    tariff_id: Mapped[int | None] = mapped_column(ForeignKey("tariffs.id"))
     subscription_id: Mapped[int | None] = mapped_column(
         ForeignKey("subscriptions.id", ondelete="SET NULL"), nullable=True
     )

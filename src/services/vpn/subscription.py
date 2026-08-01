@@ -7,6 +7,7 @@ from src.database.models.subscription import Subscription
 from src.database.models.user import User
 from src.database.repositories.invoice import InvoiceRepository
 from src.database.repositories.subscription import SubscriptionRepository
+from src.services.notification import NotificationService
 
 from .client import RemnawaveClient
 from .models import (
@@ -22,10 +23,12 @@ class SubscriptionService:
         vpn_client: RemnawaveClient,
         sub_repo: SubscriptionRepository,
         invoice_repo: InvoiceRepository,
+        notifier: NotificationService,
     ) -> None:
         self.vpn_client = vpn_client
         self.sub_repo = sub_repo
         self.invoice_repo = invoice_repo
+        self.notifier = notifier
 
     async def grant_subscription_for_invoice(self, invoice_id: int) -> bool:
         user_invoice = await self.invoice_repo.get_with_relations(invoice_id=invoice_id)
@@ -46,25 +49,39 @@ class SubscriptionService:
             raise ValueError("Инвойс ссылается на несуществующий тариф.")
 
         if user_invoice.operation == InvoiceOperation.BUY:
-            return await self._create_subscription(
+            user_sub = await self._create_subscription(
                 duration_days=user_invoice.duration_days,
                 user=user_invoice.user,
                 tariff_id=user_invoice.tariff_id,
             )
 
-        if user_invoice.operation == InvoiceOperation.EXTEND:
+        elif user_invoice.operation == InvoiceOperation.EXTEND:
             if not user_invoice.subscription:
                 raise ValueError("У инвойса отсуствует переменная subscription")
-            return await self._extend_subscription(
+
+            user_sub = await self._extend_subscription(
                 user_subscription=user_invoice.subscription,
                 duration_days=user_invoice.duration_days,
             )
 
-        raise ValueError("Неизвестная ошибка при обработке платежа")
+        else:
+            logger.error(
+                f"Неизвестный тип операции с инвойсом: operation={user_invoice.operation}"
+            )
+            raise ValueError("Неизвестный тип операции.")
+
+        user_taiff = user_invoice.tariff if user_invoice.tariff else None
+        await self.notifier.notify_payment_success(
+            telegram_id=user_invoice.user.telegram_id,
+            operation=user_invoice.operation,
+            user_sub=user_sub,
+            user_tariff=user_taiff,
+        )
+        return True
 
     async def _create_subscription(
         self, duration_days: int, user: User, tariff_id: int
-    ):
+    ) -> Subscription:
         expire_at = datetime.now(UTC) + timedelta(days=duration_days)
         username = user.username if user.username else f"user_id:{user.id}"
 
@@ -84,11 +101,11 @@ class SubscriptionService:
             sub_uuid=panel_response.uuid,
             expired_at=panel_response.expire_at,
         )
-        return bool(subscription_add_db)
+        return subscription_add_db
 
     async def _extend_subscription(
         self, user_subscription: Subscription, duration_days: int
-    ):
+    ) -> Subscription:
         now = datetime.now(UTC)
         base_date = max(now, user_subscription.expired_at)
         expired_at = base_date + timedelta(days=duration_days)
@@ -97,7 +114,8 @@ class SubscriptionService:
             uuid=user_subscription.sub_uuid, expire_at=expired_at
         )
         panel_response = await self.vpn_client.update_user(payload=payload)
-        subscription_update_db = await self.sub_repo.update_subscription(
-            sub_id=user_subscription.id, expired_at=panel_response.expire_at
+
+        subscription_update_db = await self.sub_repo.update_expired_at_subscription(
+            sub_id=user_subscription.id, new_expired_at=panel_response.expire_at
         )
-        return bool(subscription_update_db)
+        return subscription_update_db
