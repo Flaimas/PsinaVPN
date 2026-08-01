@@ -27,7 +27,7 @@ class SubscriptionService:
         self.sub_repo = sub_repo
         self.invoice_repo = invoice_repo
 
-    async def process_paid_invoice(self, invoice_id: int) -> bool:
+    async def grant_subscription_for_invoice(self, invoice_id: int) -> bool:
         user_invoice = await self.invoice_repo.get_with_relations(invoice_id=invoice_id)
 
         if not user_invoice:
@@ -89,7 +89,10 @@ class SubscriptionService:
     async def _extend_subscription(
         self, user_subscription: Subscription, duration_days: int
     ):
-        expired_at = user_subscription.expired_at + timedelta(days=duration_days)
+        now = datetime.now(UTC)
+        base_date = max(now, user_subscription.expired_at)
+        expired_at = base_date + timedelta(days=duration_days)
+
         payload = RemnawaveUpdateUser(
             uuid=user_subscription.sub_uuid, expire_at=expired_at
         )

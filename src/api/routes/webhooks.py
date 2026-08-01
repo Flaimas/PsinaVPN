@@ -35,10 +35,10 @@ async def yookassa_webhook(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
     order = await payment_service.successful_payment_process(payment_id)
-    if not order:
-        return {"status": "ok"}
 
-    await sub_service.process_paid_invoice(order.id)
+    if order:
+        await sub_service.grant_subscription_for_invoice(order.id)
+    return {"status": "ok"}
 
 
 @router.post("/telegram")
