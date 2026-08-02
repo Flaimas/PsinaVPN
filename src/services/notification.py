@@ -42,7 +42,7 @@ class NotificationService:
         builder = InlineKeyboardBuilder()
         if operation == InvoiceOperation.BUY:
             text = self.BUY_TEXT
-            builder.button(text="Подключиться", callback_data="start")
+            builder.button(text="Подключиться", callback_data="instructions")
         elif operation == InvoiceOperation.EXTEND:
             text = self.EXTEND_TEXT.format(
                 sub_name=user_tariff.name if user_tariff else "NONE",

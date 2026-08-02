@@ -17,3 +17,7 @@ class PaymentProcessCallback(CallbackData, prefix="deposit"):
 
 class ManagmentSubCallback(CallbackData, prefix="sub_menu"):
     subscription_id: int
+
+
+class InstuctionPlatform(CallbackData, prefix="instr"):
+    platform: str

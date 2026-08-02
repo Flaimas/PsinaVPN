@@ -1,5 +1,7 @@
 from aiogram import Router
 
+from .instructions import router as instructions_router
+
 # from .errors import router as errors_router
 from .payment import router as payment_router
 from .start import router as start_router
@@ -13,4 +15,5 @@ handlers_router.include_routers(
     subscription_router,
     payment_router,
     sub_managament_router,
+    instructions_router,
 )
