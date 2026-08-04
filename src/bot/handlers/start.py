@@ -44,7 +44,7 @@ async def cmd_start(
         )
     else:
         if user.subscriptions:
-            text_sub = start_texts.format_subscriptions_start(user.subscriptions)
+            text_sub = start_texts.format_subscriptions_text(user.subscriptions)
         else:
             text_sub = start_texts.NO_SUBSCRIPTIONS
 
@@ -79,9 +79,8 @@ async def callback_start(
         await callback.answer(start_texts.PROFILE_NOT_FOUND, show_alert=True)
         return
 
-    user.subscriptions.sort(key=lambda sub: (sub.tariff.price, sub.tariff.id))
     if user.subscriptions:
-        text_sub = start_texts.format_subscriptions_start(user.subscriptions)
+        text_sub = start_texts.format_subscriptions_text(user.subscriptions)
     else:
         text_sub = start_texts.NO_SUBSCRIPTIONS
 

@@ -34,13 +34,13 @@ class NotificationService:
         telegram_id: int,
         operation: InvoiceOperation,
         user_sub: Subscription,
-        user_tariff: Tariff | None = None,
+        user_tariff: Tariff | None,
     ) -> bool:
         state = await self._get_state_data(telegram_id=telegram_id)
         payment_msg_id = state.get("payment_msg_id")
 
         builder = InlineKeyboardBuilder()
-        if operation == InvoiceOperation.BUY:
+        if operation == InvoiceOperation.BUY or operation == InvoiceOperation.CHANGE:
             text = self.BUY_TEXT
             builder.button(text="Подключиться", callback_data="instructions")
         elif operation == InvoiceOperation.EXTEND:

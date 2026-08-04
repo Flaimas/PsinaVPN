@@ -3,15 +3,10 @@ from aiogram.types import Update
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 
 from src.core.config import settings
-from src.services.payment.payment import PaymentService
 from src.services.payment.yookassa import YooKassaProvider
-from src.services.vpn.subscription import SubscriptionService
+from src.services.payment_processor import ProcessPaymentUseCase
 
-from .dependencies import (
-    get_payment_service,
-    get_subscription_service,
-    get_yookassa_provider,
-)
+from .dependencies import get_payment_process, get_yookassa_provider
 
 router = APIRouter(prefix="/webhooks", tags=["Webhooks"])
 
@@ -19,9 +14,8 @@ router = APIRouter(prefix="/webhooks", tags=["Webhooks"])
 @router.post("/yookassa")
 async def yookassa_webhook(
     request: Request,
-    payment_service: PaymentService = Depends(get_payment_service),
     yookassa_provider: YooKassaProvider = Depends(get_yookassa_provider),
-    sub_service: SubscriptionService = Depends(get_subscription_service),
+    payment_process: ProcessPaymentUseCase = Depends(get_payment_process),
 ):
     body = await request.json()
     payment_id = body.get("object", {}).get("id")
@@ -34,10 +28,7 @@ async def yookassa_webhook(
     if not check_payment:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
-    order = await payment_service.successful_payment_process(payment_id)
-
-    if order:
-        await sub_service.grant_subscription_for_invoice(order.id)
+    await payment_process.execute(provider_payment_id=payment_id)
     return {"status": "ok"}
 
 

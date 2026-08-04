@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from src.core.enums import SubscriptionStatus
 from src.database.models.subscription import Subscription
 
 
@@ -26,17 +27,31 @@ class StartMessages:
     PROFILE_NOT_FOUND: str = "Профиль не найден. Пожалуйста, введите /start"
 
     @staticmethod
-    def format_subscriptions_start(user_subscriptions: list[Subscription]) -> str:
-        subscriptions = "\n".join(
-            [
-                f"{sub.tariff.name} - {f'до {sub.expired_at.strftime("%d.%m.%Y")}' if sub.is_active else f'Истекла ({sub.expired_at.strftime("%d.%m.%Y")})'}"
-                for sub in user_subscriptions
-            ]
-        )
+    def format_subscriptions_text(user_subscriptions: list[Subscription]) -> str:
+        if not user_subscriptions:
+            return "🔑 У тебя нет активных подписок."
+
+        format_subs: list[str] = []
+        for sub in user_subscriptions:
+            formatted_date = sub.expired_at.strftime("%d.%m.%Y")
+            text = ""
+            match sub.status:
+                case SubscriptionStatus.ACTIVE:
+                    text = f"{sub.tariff.name} - активна до {formatted_date}"
+                case SubscriptionStatus.DISABLED:
+                    text = f"{sub.tariff.name} - отключена."
+                case SubscriptionStatus.EXPIRED:
+                    text = f"{sub.tariff.name} - закончилась."
+                case SubscriptionStatus.LIMITED:
+                    text = f"{sub.tariff.name} - лимит трафика исчерпан."
+                case _:
+                    text = f"{sub.tariff.name} — неизвестный статус."
+            format_subs.append(text)
         header = (
             "🔑 Твои подписки:" if len(user_subscriptions) > 1 else "🔑 Твоя подписка:"
         )
-        return f"{header} \n\n<code>{subscriptions}</code>"
+        subscription_str = "/n".join(format_subs)
+        return f"{header} \n\n<code>{subscription_str}</code>"
 
 
 start_texts = StartMessages()

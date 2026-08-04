@@ -52,7 +52,7 @@ class TariffService:
             if opt.period_days == target_period:
                 return opt
         error_msg = (
-            f"Период {target_period} мес. не найден в доступных опциях {self.periods}"
+            f"Период {target_period} дней не найден в доступных опциях {self.periods}"
         )
         logger.error(error_msg)
         raise ValueError(error_msg)

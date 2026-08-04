@@ -12,6 +12,19 @@ class PaymentProvider(str, Enum):
     BALANCE = "balance"
 
 
+class TariffCategory(str, Enum):
+    DEFAULT = "default"
+    WHITELIST = "whitelist"
+
+
 class InvoiceOperation(str, Enum):
     BUY = "buy"
     EXTEND = "extend"
+    CHANGE = "change"
+
+
+class SubscriptionStatus(str, Enum):
+    ACTIVE = "active"
+    DISABLED = "disabled"
+    LIMITED = "limited"
+    EXPIRED = "expired"

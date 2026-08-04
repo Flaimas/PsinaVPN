@@ -7,6 +7,7 @@ from src.bot.keyboards.callbacks import ManagmentSubCallback
 from src.bot.states import OrderTariffStates
 from src.bot.utils.message import edit_callback_media
 from src.common.subscription_text import sub_managment_text
+from src.core.enums import InvoiceOperation
 from src.core.media_config import DEFAULT_PHOTO
 from src.database.repositories.user import UserRepository
 
@@ -30,8 +31,6 @@ async def menu(
         await state.clear()
         return
 
-    user.subscriptions.sort(key=lambda sub: (sub.tariff.price, sub.tariff.id))
-
     text = "Выберите подписку:"
     await edit_callback_media(
         callback=callback,
@@ -51,6 +50,9 @@ async def sub_menu(
 ):
     await callback.answer()
     await state.clear()
+    await state.set_state(
+        OrderTariffStates.extend_subscription,
+    )
     user = await user_repo.get_user_with_subscriptions(
         telegram_id=callback.from_user.id
     )
@@ -70,9 +72,10 @@ async def sub_menu(
         )
         return
 
-    await state.set_state(OrderTariffStates.extend_subscription)
     await state.update_data(
-        tariff_slug=current_sub.tariff.slug, user_sub_id=current_sub.id
+        user_sub_id=current_sub.id,
+        tariff_id=current_sub.tariff.id,
+        operation=InvoiceOperation.EXTEND,
     )
 
     text = sub_managment_text.SUB_MANAGMNET.format(
@@ -84,6 +87,6 @@ async def sub_menu(
         media=DEFAULT_PHOTO,
         caption=text,
         reply_markup=kb.sub_management.managment_subscription(
-            current_sub, len(user.subscriptions)
+            current_sub, user.subscriptions
         ),
     )

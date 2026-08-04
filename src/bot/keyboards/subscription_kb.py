@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.bot.keyboards.callbacks import ManagmentSubCallback
+from src.bot.keyboards.callbacks import ManagmentSubCallback, PricesTariffCallback
 from src.database.models.tariff import Tariff
 from src.scheams.tariff import TariffOption
 
@@ -13,7 +13,9 @@ class SubscriptionInkineKeyBoard:
         builder = InlineKeyboardBuilder()
         for tariff in database_tariffs:
             text = f"{tariff.name} - {int(tariff.price)} руб."
-            builder.button(text=text, callback_data=f"prices_tariff:{tariff.slug}")
+            builder.button(
+                text=text, callback_data=PricesTariffCallback(tariff_id=tariff.id)
+            )
         builder.button(text="↩︎ Назад", callback_data="start")
         builder.adjust(1)
         return builder.as_markup()

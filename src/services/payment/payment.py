@@ -21,11 +21,6 @@ class PaymentService:
             raise PaymentProviderUnavailableError("Ошибка, провайдер не обслуживается!")
         return provider
 
-    async def successful_payment_process(
-        self, provider_payment_id: str
-    ) -> Invoice | None:
-        return await self.invoice_repo.mark_as_paid_if_pending(provider_payment_id)
-
     async def create_invoice(
         self,
         provider_type: PaymentProvider,

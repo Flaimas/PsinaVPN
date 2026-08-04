@@ -1,11 +1,13 @@
-import uuid
 from datetime import datetime
+from uuid import UUID
 
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
+from src.core.enums import TariffCategory
 from src.database.models.subscription import Subscription
+from src.database.models.user import User
 
 
 class SubscriptionRepository:
@@ -17,18 +19,20 @@ class SubscriptionRepository:
         user_id: int,
         tariff_id: int,
         sub_url: str,
-        sub_uuid: uuid.UUID,
+        remnawave_user_id: int,
         expired_at: datetime,
-        is_active: bool = True,
+        tariff_category: TariffCategory,
+        squad_uuids: list[UUID],
     ) -> Subscription:
 
         subscription = Subscription(
             user_id=user_id,
             tariff_id=tariff_id,
-            sub_uuid=sub_uuid,
+            tariff_category=tariff_category,
+            remnawave_user_id=remnawave_user_id,
             sub_url=sub_url,
-            is_active=is_active,
             expired_at=expired_at,
+            squad_uuids=squad_uuids,
         )
         self.session.add(subscription)
         await self.session.flush()
@@ -40,12 +44,12 @@ class SubscriptionRepository:
         return result.rowcount > 0  # type: ignore
 
     async def update_expired_at_subscription(
-        self, sub_id: int, new_expired_at: datetime
+        self, sub_id: int, new_expired_at: datetime, **kwargs
     ) -> Subscription:
         stmt = (
             update(Subscription)
             .where(Subscription.id == sub_id)
-            .values(expired_at=new_expired_at)
+            .values(expired_at=new_expired_at, **kwargs)
             .returning(Subscription)
         )
         result = await self.session.execute(stmt)
@@ -54,14 +58,10 @@ class SubscriptionRepository:
     async def get_subscriptions_by_user(
         self,
         user_id: int,
-        is_active: bool | None = None,
         load_user: bool = False,
         load_tariff: bool = False,
     ) -> list[Subscription]:
         stmt = select(Subscription).where(Subscription.user_id == user_id)
-
-        if is_active is not None:
-            stmt = stmt.where(Subscription.is_active == is_active)
 
         if load_tariff:
             stmt = stmt.options(joinedload(Subscription.tariff))
@@ -71,6 +71,16 @@ class SubscriptionRepository:
 
         result = await self.session.execute(stmt)
         return list(result.scalars().unique().all())
+
+    async def get_subscriptions_by_tg_id(self, telegram_id: int) -> list[Subscription]:
+        stmt = select(Subscription).join(User).where(User.telegram_id == telegram_id)
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get_subscription_by_id(self, sub_id: int):
+        stmt = select(Subscription).where(Subscription.id == sub_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
 
     async def deactivate_subscription(self, sub_id: int) -> bool:
         stmt = (

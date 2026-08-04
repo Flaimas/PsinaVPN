@@ -29,7 +29,15 @@ class InvoiceRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_with_relations(self, invoice_id: int) -> Invoice | None:
+    async def set_subscription_id(self, invoice_id: int, sub_id: int) -> None:
+        stmt = (
+            update(Invoice)
+            .where(Invoice.id == invoice_id)
+            .values(subscription_id=sub_id)
+        )
+        await self.session.execute(stmt)
+
+    async def get_with_relations(self, invoice_id: int) -> Invoice:
         query = (
             select(Invoice)
             .where(Invoice.id == invoice_id)
@@ -38,4 +46,4 @@ class InvoiceRepository:
             .options(joinedload(Invoice.subscription))
         )
         result = await self.session.execute(query)
-        return result.unique().scalar_one_or_none()
+        return result.unique().scalar_one()

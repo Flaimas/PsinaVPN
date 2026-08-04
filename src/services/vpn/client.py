@@ -1,6 +1,5 @@
 import json
 from typing import Any
-from uuid import UUID
 
 import httpx
 from httpx import AsyncClient, Response
@@ -116,17 +115,17 @@ class RemnawaveClient:
         data = response.json()
         return RemnawaveUserResponse.model_validate(data.get("response", data))
 
-    async def delete_user(self, uuid: str) -> bool:
+    async def delete_user(self, user_id: int) -> bool:
         try:
-            await self._send_request(method="DELETE", endpoint=f"/api/users/{uuid}")
+            await self._send_request(method="DELETE", endpoint=f"/api/users/{user_id}")
         except RemnawaveNotFoundError:
             return False
         return True
 
-    async def get_user_by_uuid(self, uuid: UUID) -> RemnawaveUserResponse | None:
+    async def get_user_by_id(self, user_id: int) -> RemnawaveUserResponse | None:
         try:
             response = await self._send_request(
-                method="GET", endpoint=f"/api/users/{uuid}"
+                method="GET", endpoint=f"/api/users/{user_id}"
             )
             data = response.json()
             return RemnawaveUserResponse.model_validate(data.get("response", data))

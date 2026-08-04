@@ -28,7 +28,6 @@ from src.tests.services.vpn.client import FakeRemnawaveClient
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # --- STARTUP LOGIC ---
     setup_logging()
     if settings.DEBUG:
         vpn_client = FakeRemnawaveClient()
@@ -86,7 +85,7 @@ async def lifespan(app: FastAPI):
     app.state.dp = dp
     app.state.providers = get_payment_providers()
     telegram_web_hook_url = (
-        "https://hmjgj-109-120-150-155.free.pinggy.net/webhooks/telegram"
+        "https://csvjf-178-67-236-154.free.pinggy.net/webhooks/telegram"
     )
     await bot.set_webhook(
         url=telegram_web_hook_url,

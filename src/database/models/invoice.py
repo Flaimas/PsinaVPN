@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Float, ForeignKey, String, func
-from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.enums import InvoiceOperation, PaymentProvider, PaymentStatus
@@ -27,9 +26,7 @@ class Invoice(Base):
     subscription_id: Mapped[int | None] = mapped_column(
         ForeignKey("subscriptions.id", ondelete="SET NULL"), nullable=True
     )
-    provider: Mapped[PaymentProvider] = mapped_column(
-        SQLEnum(PaymentProvider, native_enum=False), nullable=False
-    )
+    provider: Mapped[PaymentProvider] = mapped_column(String(20), nullable=False)
     provider_payment_id: Mapped[str] = mapped_column(String, unique=True, index=True)
     amount: Mapped[float] = mapped_column(Float)
     duration_days: Mapped[int] = mapped_column(nullable=False)
@@ -38,6 +35,7 @@ class Invoice(Base):
         String(20),
         default=PaymentStatus.PENDING,
         server_default=PaymentStatus.PENDING.value,
+        nullable=False,
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.timezone("utc", func.now())
@@ -49,6 +47,7 @@ class Invoice(Base):
         String(10),
         default=InvoiceOperation.BUY,
         server_default=InvoiceOperation.BUY.value,
+        nullable=False,
     )
     user: Mapped[User | None] = relationship(back_populates="invoices")
     tariff: Mapped[Tariff | None] = relationship(back_populates="invoices")

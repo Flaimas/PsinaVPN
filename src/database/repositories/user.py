@@ -22,6 +22,7 @@ class UserRepository:
             .where(User.telegram_id == telegram_id)
             .options(joinedload(User.subscriptions).joinedload(Subscription.tariff))
         )
+
         result = await self.session.execute(query)
         return result.unique().scalar_one_or_none()
 

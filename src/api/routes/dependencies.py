@@ -2,17 +2,14 @@ from fastapi import Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import settings
-from src.core.enums import PaymentProvider
 from src.database.connection import get_session
 from src.database.repositories.invoice import InvoiceRepository
 from src.database.repositories.subscription import SubscriptionRepository
 from src.services.notification import NotificationService
-from src.services.payment.base import BasePaymentProvider
-from src.services.payment.payment import PaymentService
-from src.services.payment.providers import get_payment_providers
 from src.services.payment.yookassa import YooKassaProvider
+from src.services.payment_processor import ProcessPaymentUseCase
+from src.services.subscription import SubscriptionService
 from src.services.vpn.client import RemnawaveClient
-from src.services.vpn.subscription import SubscriptionService
 
 
 def get_yookassa_provider() -> YooKassaProvider:
@@ -21,33 +18,33 @@ def get_yookassa_provider() -> YooKassaProvider:
     )
 
 
-def get_payment_service(
-    session: AsyncSession = Depends(get_session),
-    providers: dict[PaymentProvider, BasePaymentProvider] = Depends(
-        get_payment_providers
-    ),
-):
-    return PaymentService(
-        invoice_repo=InvoiceRepository(session=session), providers=providers
-    )
-
-
 def get_vpn_client(request: Request) -> RemnawaveClient:
     """Достаёт RemnawaveClient из app.state текущего приложения."""
     return request.app.state.vpn_client
 
 
-def get_subscription_service(
-    request: Request,
+def get_notifier(request: Request):
+    bot = request.app.state.bot
+    dp = request.app.state.dp
+    return NotificationService(bot=bot, dp=dp)
+
+
+def get_payment_process(
     session: AsyncSession = Depends(get_session),
     vpn_client: RemnawaveClient = Depends(get_vpn_client),
-):
-    telegram_bot = request.app.state.bot
-    dp = request.app.state.dp
+    notifier: NotificationService = Depends(get_notifier),
+) -> ProcessPaymentUseCase:
+    sub_repo = SubscriptionRepository(session=session)
+    invoice_repo = InvoiceRepository(session=session)
 
-    return SubscriptionService(
+    subscription_service = SubscriptionService(
         vpn_client=vpn_client,
-        sub_repo=SubscriptionRepository(session),
-        invoice_repo=InvoiceRepository(session),
-        notifier=NotificationService(bot=telegram_bot, dp=dp),
+        sub_repo=sub_repo,
+    )
+
+    return ProcessPaymentUseCase(
+        session=session,
+        invoice_repo=invoice_repo,
+        subscription_service=subscription_service,
+        notifier=notifier,
     )
