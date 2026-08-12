@@ -9,8 +9,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 class Settings(BaseSettings):
+    UVICORN_HOST: str
+    UVICORN_PORT: int
+
     BOT_TOKEN: str
+    USE_WEBHOOK: bool = False
     TELEGRAM_SECRET_TOKEN: str
+    TELEGRAM_WH_BASE_URL: str
     ADMIN_IDS: str
     PROXY_URL: str | None = None
 
@@ -27,20 +32,23 @@ class Settings(BaseSettings):
     REMNAWAVE_BASE_URL: str
     REMNAWAVE_API_TOKEN: str
 
-    LOG_LEVEL: str = "DEBUG"
+    LOG_LEVEL: str = "INFO"
     START_BALANCE: float = 0.0
-    PAYMENT_PROVIDERS: tuple[PaymentProvider, ...] = (
-        PaymentProvider.YOOKASSA,
-        PaymentProvider.BALANCE,
-    )
-    YOOKASSA_SHOP_ID: str = "test_shop_id_123456"
-    YOOKASSA_SECRET_KEY: str = "test_secret_key_123456"
+    PAYMENT_PROVIDERS: tuple[PaymentProvider, ...] = (PaymentProvider.YOOKASSA,)
+    YOOKASSA_SHOP_ID: str
+    YOOKASSA_SECRET_KEY: str
 
-    PERIODS_SUBSCRIPTION: list[int] = [30, 60, 90, 120, 150]
+    PERIODS_SUBSCRIPTION: list[int] = [30, 60, 90, 120]
     DISCOUNT_FOR_PERIOD: list[int] | None = None
     MAX_DISCOUNT: int = Field(default=50, gt=0, lt=100)
 
     DEBUG: bool = True
+
+    @computed_field
+    @property
+    def telegram_web_hook_url(self) -> str:
+        url = self.TELEGRAM_WH_BASE_URL.rstrip("/")
+        return f"{url}/webhooks/telegram"
 
     @computed_field
     @property
