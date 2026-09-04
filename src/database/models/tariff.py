@@ -29,6 +29,7 @@ class Tariff(Base):
     squad_uuids: Mapped[list[UUID]] = mapped_column(
         ARRAY(PG_UUID(as_uuid=True)), default=list, nullable=False
     )
+    device_limit: Mapped[int] = mapped_column(nullable=False)
 
     subscriptions: Mapped[list[Subscription]] = relationship(back_populates="tariff")
     invoices: Mapped[list[Invoice]] = relationship(back_populates="tariff")

@@ -43,6 +43,8 @@ async def lifespan(app: FastAPI):
     app.state.providers = get_payment_providers()
 
     if settings.USE_WEBHOOK:
+        if not settings.telegram_web_hook_url:
+            raise ValueError("Забыли указать TELEGRAM_WH_BASE_URL в .env!")
         await bot.set_webhook(
             url=settings.telegram_web_hook_url,
             secret_token=settings.TELEGRAM_SECRET_TOKEN,

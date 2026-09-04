@@ -1,0 +1,81 @@
+ios:
+  label: "🍏 iOS"
+  text: |
+    <b>Инструкция для iOS</b>
+
+    ⚙️ <b>Шаг 1.</b> Скачайте клиент из App Store (кнопки ниже)
+
+    ⚙️ <b>Шаг 2.</b> При запуске нажмите <b>Allow</b> и введите пароль от iOS
+    
+    ⚙️ <b>Шаг 3.</b> Вернитесь сюда и подключите подписку
+  downloads:
+    - name: "📱 Happ (RU App Store)"
+      url: "https://apps.apple.com/us/app/happ-proxy-utility/id6504287215"
+    - name: "📱 Happ (GLOBAL App Store)"
+      url: "https://apps.apple.com/ru/app/happ-proxy-utility/id6783623643"
+
+android:
+  label: "🤖 Android"
+  text: |
+    <b>Инструкция для Android</b>
+
+    1. Скачайте и установите рекомендуемый клиент из Google Play или прямым APK-файлом.
+    2. Откройте приложение и выдайте необходимые разрешения для создания VPN-подключения.
+    3. Нажмите кнопку импорта подписки в боте.
+  downloads:
+    - name: "🏪 Happ Google Play"
+      url: "https://play.google.com/store/apps/details?id=com.happproxy"
+    - name: "📥 Happ прямой .APK"
+      url: "https://github.com/Happ-proxy/happ-android/releases/latest/download/Happ.apk"
+
+windows:
+  label: "💻 Windows"
+  text: |
+    <b>Инструкция для Windows</b>
+
+    1. Скачайте и установите клиент для Windows.
+    2. Запустите приложение от имени администратора.
+    3. Нажмите кнопку импорта подписки в боте.
+  downloads:
+    - name: "💻 Happ Windows (x64)"
+      url: "https://github.com/Happ-proxy/happ-desktop/releases/latest/download/setup-Happ.x64.exe"
+
+macos:
+  label: "🍏 macOS"
+  text: |
+    <b>Инструкция для macOS</b>
+
+    1. Установите приложение из Mac App Store или скачайте установочный `.dmg` файл.
+    2. Запустите приложение и разрешите добавление сетевого расширения в настройках системы.
+    3. Импортируйте ссылку вашей подписки.
+  downloads:
+    - name: "🍏 Happ (RU App Store)"
+      url: "https://apps.apple.com/us/app/happ-proxy-utility/id6504287215"
+    - name: "🍏 Happ (GLOBAL App Store)"
+      url: "https://apps.apple.com/ru/app/happ-proxy-utility/id6783623643"
+
+android_tv:
+  label: "📺 Android TV"
+  text: |
+    <b>Инструкция для Android TV / TV Box</b>
+
+    1. Установите клиент через Android TV Play Store или передайте APK-файл на телевизор (например, через Send Files to TV).
+    2. Откройте приложение и разрешите создание VPN-соединения.
+    3. Введите ссылку подписки или отсканируйте QR-код.
+  downloads:
+    - name: "📺 Happ Google Play"
+      url: "https://play.google.com/store/apps/details?id=com.happproxy"
+    - name: "📺 Happ прямой .APK"
+      url: "https://github.com/Happ-proxy/happ-android/releases/latest/download/Happ.apk"
+
+apple_tv:
+  label: "🍎 Apple TV"
+  text: |
+    <b>Инструкция для Apple TV</b>
+
+    1. Откройте App Store на Apple TV (требуется tvOS 17 или новее).
+    2. Найдите и установите приложение.
+    3. Откройте приложение и добавьте ссылку вашей подписки через единый iCloud-буфер или QR-код.
+  downloads:
+    - name: "🍎 App Store (Apple TV)"
+      url: "https://apps.apple.com/us/app/happ-proxy-utility-for-tv/id6748297274"

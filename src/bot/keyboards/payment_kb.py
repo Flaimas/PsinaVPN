@@ -6,6 +6,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.bot.keyboards.callbacks import PaymentProcessCallback, PricesTariffCallback
 from src.core.config import settings
+from src.core.enums import InvoiceOperation
 from src.database.models.invoice import PaymentProvider
 
 
@@ -17,7 +18,9 @@ class PaymentInlineKeyboard:
         }
     )
 
-    def select_payment_provider_kb(self, tariff_id: int) -> InlineKeyboardMarkup:
+    def select_payment_provider_kb(
+        self, tariff_id: int, operation: InvoiceOperation
+    ) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
         for provider in settings.PAYMENT_PROVIDERS:
             builder.button(
@@ -26,7 +29,10 @@ class PaymentInlineKeyboard:
             )
         builder.button(text="Главное меню", callback_data="start")
         builder.button(
-            text="↩︎ Назад", callback_data=PricesTariffCallback(tariff_id=tariff_id)
+            text="↩︎ Назад",
+            callback_data=PricesTariffCallback(
+                tariff_id=tariff_id, operation=operation
+            ),
         )
         builder.adjust(1)
         return builder.as_markup()

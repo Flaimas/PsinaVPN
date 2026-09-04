@@ -23,30 +23,35 @@ class PaymentTexts:
         discount_price: float,
         days_left: int | None = None,
     ) -> str:
-        if base_price == discount_price:
-            price_text = f"💰 Цена: {discount_price:.0f} руб."
-        else:
-            price_text = (
-                f"<s>Старая цена: {base_price:.0f} руб.</s>\n"
-                f"🔥 Цена со скидкой: {discount_price:.0f} руб."
-            )
+        lines = []
 
-        notification = ""
-        if days_left and days_left > 0:
-            notification = (
-                f"\n⚠️ <b>Внимание:</b> Ваша текущая подписка "
-                f"(осталось {days_left} дн.) будет аннулирована "
-                f"без перерасчета остатка.\n"
-            )
-
-        return (
+        lines.append(
             f"<b>Подтверждение заказа</b>\n\n"
-            f"📋 <b>Тариф:</b> {selected_tariff.name} ({selected_tariff.traffic_limit} ГБ)\n"
-            f"⏳ <b>Срок:</b> {days_amount} дней\n"
-            f"{price_text}\n"
-            f"{notification}\n"
-            f"Выберите способ оплаты:"
+            f"📋 <b>Тариф:</b> {selected_tariff.name}\n"
+            f"⏳ <b>Срок:</b> {days_amount} дней"
         )
+
+        if selected_tariff.traffic_limit > 0:
+            lines.append(
+                f"⏳ <b>Трафик белых списков:</b> {selected_tariff.traffic_limit} ГБ\n"
+            )
+
+        if base_price == discount_price:
+            lines.append(f"💰 <b>Цена:</b> {discount_price:.0f} руб.\n")
+        else:
+            lines.append(
+                f"<s>Старая цена: {base_price:.0f} руб.</s>\n"
+                f"🔥 <b>Цена со скидкой:</b> {discount_price:.0f} руб."
+            )
+
+        if days_left and days_left > 0:
+            lines.append(
+                f"⚠️ <b>Внимание:</b> Ваша текущая подписка "
+                f"(осталось {days_left} дн.) будет аннулирована "
+                f"без перерасчета остатка."
+            )
+        lines.append("<b>Выберите способ оплаты:</b>")
+        return "\n".join(lines)
 
 
 payment_texts = PaymentTexts()

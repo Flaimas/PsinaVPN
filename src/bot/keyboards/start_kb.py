@@ -2,7 +2,7 @@ from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.bot.keyboards.callbacks import ManagmentSubCallback, TariffSelectCallback
-from src.core.enums import InvoiceOperation, TariffCategory
+from src.core.enums import InvoiceOperation
 from src.database.models.subscription import Subscription
 
 
@@ -18,9 +18,7 @@ class StartInlineKeyboard:
             case 0:
                 builder.button(
                     text="🛍️ Купить VPN",
-                    callback_data=TariffSelectCallback(
-                        operation=InvoiceOperation.BUY, category=TariffCategory.DEFAULT
-                    ),
+                    callback_data=TariffSelectCallback(operation=InvoiceOperation.BUY),
                 )
             case 1:
                 builder.button(

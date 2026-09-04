@@ -73,7 +73,7 @@ class SubscriptionService:
             username=username,
             telegram_id=user.telegram_id,
             expire_at=expire_at,
-            traffic_limit_bytes=tariff.traffic_limit,
+            traffic_limit_bytes=(tariff.traffic_limit) * 1024**3,
             traffic_limit_strategy=TrafficLimitStrategy.MONTH,
             active_internal_squads=tariff.squad_uuids,
         )
@@ -99,7 +99,7 @@ class SubscriptionService:
         payload = RemnawaveUpdateUser(
             id=user_subscription.remnawave_user_id,
             expire_at=expired_at,
-            traffic_limit_bytes=tariff.traffic_limit,
+            traffic_limit_bytes=(tariff.traffic_limit) * 1024**3,
         )
         panel_response = await self.vpn_client.update_user(payload=payload)
 

@@ -78,9 +78,10 @@ async def sub_menu(
         operation=InvoiceOperation.EXTEND,
     )
 
-    text = sub_managment_text.SUB_MANAGMNET.format(
+    text = sub_managment_text.SUB_MANAGEMENT.format(
         sub_name=current_sub.tariff.name,
         expired_at=current_sub.expired_at.strftime("%d.%m.%Y"),
+        url=current_sub.sub_url,
     )
     await edit_callback_media(
         callback=callback,

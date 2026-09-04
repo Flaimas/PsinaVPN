@@ -5,11 +5,12 @@ from src.core.enums import InvoiceOperation, PaymentProvider, TariffCategory
 
 class TariffSelectCallback(CallbackData, prefix="tariffs"):
     operation: InvoiceOperation
-    category: TariffCategory
+    category: TariffCategory | None = None
 
 
 class PricesTariffCallback(CallbackData, prefix="prices_tariff"):
     tariff_id: int
+    operation: InvoiceOperation
 
 
 class ChangeTariffCallback(CallbackData, prefix="change_tariff"):

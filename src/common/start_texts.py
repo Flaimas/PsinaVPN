@@ -51,7 +51,7 @@ class StartMessages:
             "🔑 Твои подписки:" if len(user_subscriptions) > 1 else "🔑 Твоя подписка:"
         )
         subscription_str = "/n".join(format_subs)
-        return f"{header} \n\n<code>{subscription_str}</code>"
+        return f"{header}\n<code>{subscription_str}</code>"
 
 
 start_texts = StartMessages()

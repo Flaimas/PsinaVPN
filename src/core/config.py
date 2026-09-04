@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import Field, computed_field
+from pydantic import Field, HttpUrl, TypeAdapter, computed_field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .enums import PaymentProvider
@@ -14,9 +14,9 @@ class Settings(BaseSettings):
 
     BOT_TOKEN: str
     USE_WEBHOOK: bool = False
-    TELEGRAM_SECRET_TOKEN: str
-    TELEGRAM_WH_BASE_URL: str
-    ADMIN_IDS: str
+    TELEGRAM_SECRET_TOKEN: str | None = None
+    TELEGRAM_WH_BASE_URL: str | None = None
+    ADMIN_IDS: list[str] | None = None
     PROXY_URL: str | None = None
 
     DB_NAME: str
@@ -44,11 +44,31 @@ class Settings(BaseSettings):
 
     DEBUG: bool = True
 
+    @field_validator("REMNAWAVE_BASE_URL", mode="before")
+    @classmethod
+    def clean_and_validate_url(cls, v: str) -> str:
+        if isinstance(v, str):
+            v = v.strip().rstrip("/")
+        try:
+            TypeAdapter(HttpUrl).validate_python(v)
+        except Exception:
+            raise ValueError("REMNAWAVE_BASE_URL должен быть валидным HTTP/HTTPS URL")
+
+        return v
+
     @computed_field
     @property
-    def telegram_web_hook_url(self) -> str:
-        url = self.TELEGRAM_WH_BASE_URL.rstrip("/")
-        return f"{url}/webhooks/telegram"
+    def telegram_web_hook_url(self) -> str | None:
+        if not self.USE_WEBHOOK:
+            return None
+
+        if not self.TELEGRAM_WH_BASE_URL:
+            raise ValueError(
+                "TELEGRAM_WH_BASE_URL must be set when USE_WEBHOOK is True"
+            )
+
+        base_url = str(self.TELEGRAM_WH_BASE_URL).rstrip("/")
+        return f"{base_url}/webhooks/telegram"
 
     @computed_field
     @property

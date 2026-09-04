@@ -21,7 +21,7 @@ class TariffRepository:
         return list(result.scalars().all())
 
     async def get_available_tariffs_for_user(
-        self, category: TariffCategory, telegram_id: int
+        self, telegram_id: int, category: TariffCategory | None = None
     ) -> list[Tariff]:
         stmt = (
             select(Tariff)
@@ -37,11 +37,15 @@ class TariffRepository:
             )
             .where(
                 Tariff.is_active.is_(True),
-                Tariff.category == category,
                 Subscription.id.is_(None),
             )
-            .order_by(Tariff.price.asc())
         )
+
+        if category is not None:
+            stmt = stmt.where(Tariff.category == category)
+
+        stmt = stmt.order_by(Tariff.price.asc())
+
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 

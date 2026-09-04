@@ -28,26 +28,27 @@ class SubManagamentInlineKeyboard:
     ):
         builder = InlineKeyboardBuilder()
         builder.button(
-            text="Продлить подписку",
-            callback_data=PricesTariffCallback(tariff_id=selected_user_sub.tariff.id),
+            text="Скопировать ссылку",
+            copy_text=CopyTextButton(text=selected_user_sub.sub_url),
+        )
+        builder.button(
+            text="Продлить тариф",
+            callback_data=PricesTariffCallback(
+                tariff_id=selected_user_sub.tariff.id, operation=InvoiceOperation.EXTEND
+            ),
             style=ButtonStyle.PRIMARY,
         )
         builder.button(
-            text="Перейти на другой тариф",
+            text="Сменить тариф",
             callback_data=TariffSelectCallback(
-                category=selected_user_sub.tariff_category,
                 operation=InvoiceOperation.CHANGE,
             ),
             style=ButtonStyle.SUCCESS,
-        )
-        builder.button(
-            text="Копировать ссылку",
-            copy_text=CopyTextButton(text=selected_user_sub.sub_url),
         )
         builder.button(text="Инструкция по подключению", callback_data="instructions")
         if len(all_user_sub) == 1:
             builder.button(text="Назад", callback_data="start")
         else:
             builder.button(text="Назад", callback_data="select_sub_for_management")
-        builder.adjust(1)
+        builder.adjust(1, 2, 1, 1)
         return builder.as_markup()

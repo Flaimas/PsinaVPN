@@ -57,6 +57,12 @@ async def buy_tariff_menu(
             return
         days_left = (user_subscription.expired_at - datetime.now(UTC)).days
         days_left = max(0, days_left)
+        operation = InvoiceOperation.CHANGE
+
+    elif OrderTariffStates.extend_subscription:
+        operation = InvoiceOperation.EXTEND
+    else:
+        operation = InvoiceOperation.BUY
 
     if not selected_tariff:
         await callback.answer(payment_texts.SESSION_EXPIRED, show_alert=True)
@@ -89,7 +95,9 @@ async def buy_tariff_menu(
         callback=callback,
         media=DEFAULT_PHOTO,
         caption=text,
-        reply_markup=kb.payment.select_payment_provider_kb(tariff_id=selected_tariff),
+        reply_markup=kb.payment.select_payment_provider_kb(
+            tariff_id=selected_tariff, operation=operation
+        ),
     )
     await callback.answer()
 

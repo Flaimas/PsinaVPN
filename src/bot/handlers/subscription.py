@@ -58,8 +58,8 @@ async def process_tariff_select(
     await edit_callback_media(
         callback=callback,
         media=DEFAULT_PHOTO,
-        caption=subscription_text.TARIFFS,
-        reply_markup=kb.subscription.get_tariffs_keyboard(tariffs),
+        caption=subscription_text.format_tariffs_menu(tariffs),
+        reply_markup=kb.subscription.get_tariffs_keyboard(tariffs, operation),
     )
 
     await callback.answer()
@@ -89,6 +89,7 @@ async def prices_tariff_menu(
         await callback.answer("Тариф не найден", show_alert=True)
         return
     options = tariff_service.calculate_period_price(price=tariff.price)
+    operation = callback_data.operation
     state_data = await state.get_data()
     user_sub_id = state_data.get("user_sub_id")
     text = "Выберите срок действия подписки."
@@ -99,6 +100,6 @@ async def prices_tariff_menu(
         callback=callback,
         media=DEFAULT_PHOTO,
         caption=text,
-        reply_markup=kb.subscription.get_tariff_prices(options, user_sub_id),
+        reply_markup=kb.subscription.get_tariff_prices(options, user_sub_id, operation),
     )
     await callback.answer()

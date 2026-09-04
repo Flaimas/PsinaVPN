@@ -1,27 +1,38 @@
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.bot.keyboards.callbacks import ManagmentSubCallback, PricesTariffCallback
+from src.bot.keyboards.callbacks import (
+    ManagmentSubCallback,
+    PricesTariffCallback,
+    TariffSelectCallback,
+)
+from src.core.enums import InvoiceOperation
 from src.database.models.tariff import Tariff
 from src.scheams.tariff import TariffOption
 
 
 class SubscriptionInkineKeyBoard:
     def get_tariffs_keyboard(
-        self, database_tariffs: list[Tariff]
+        self, database_tariffs: list[Tariff], operation: InvoiceOperation
     ) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
         for tariff in database_tariffs:
             text = f"{tariff.name} - {int(tariff.price)} руб."
             builder.button(
-                text=text, callback_data=PricesTariffCallback(tariff_id=tariff.id)
+                text=text,
+                callback_data=PricesTariffCallback(
+                    tariff_id=tariff.id, operation=operation
+                ),
             )
         builder.button(text="↩︎ Назад", callback_data="start")
         builder.adjust(1)
         return builder.as_markup()
 
     def get_tariff_prices(
-        self, options: list[TariffOption], user_sub_id: int | None
+        self,
+        options: list[TariffOption],
+        user_sub_id: int | None,
+        operation: InvoiceOperation,
     ) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
 
@@ -38,7 +49,9 @@ class SubscriptionInkineKeyBoard:
                 callback_data=ManagmentSubCallback(subscription_id=user_sub_id),
             )
         else:
-            builder.button(text="↩︎ Назад", callback_data="tariffs")
+            builder.button(
+                text="↩︎ Назад", callback_data=TariffSelectCallback(operation=operation)
+            )
         builder.adjust(1)
         return builder.as_markup()
 
