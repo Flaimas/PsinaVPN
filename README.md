@@ -37,7 +37,7 @@ curl -fsSL [https://get.docker.com](https://get.docker.com) | sh
 
 2. **Загрузите конфигурационные файлы из репозитория:**
    ```bash
-   curl -o docker-compose.yml [https://raw.githubusercontent.com/Flaimas/PsinaVPN/main/docker-compose.yml](https://raw.githubusercontent.com/Flaimas/PsinaVPN/main/docker-compose.yml)
+   curl -o docker-compose.yml [https://raw.githubusercontent.com/Flaimas/PsinaVPN/main/docker-compose.yml](https://raw.githubusercontent.com/Flaimas/PsinaVPN/main/docker-compose.yml) &&
    curl -o .env [https://raw.githubusercontent.com/Flaimas/PsinaVPN/main/.env.example](https://raw.githubusercontent.com/Flaimas/PsinaVPN/main/.env.example)
    ```
 
