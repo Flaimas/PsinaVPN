@@ -19,12 +19,13 @@
 ## 🚀 Быстрый старт на VPS (Production)
 
 ### Требования
-1) Телеграм бот работает на основе панели Remnawave (https://github.com/remnawave)
+1) Телеграм бот работает на основе панели [Remnawave](https://github.com/remnawave)
 2) Для работы приложения на сервере требуется **Docker**. Если он ещё не установлен, выполните команду:
 
 ```bash
 curl -fsSL [https://get.docker.com](https://get.docker.com) | sh
 ```
+
 ---
 
 ### Пошаговая установка
@@ -49,14 +50,3 @@ curl -fsSL [https://get.docker.com](https://get.docker.com) | sh
 4. **Запустите контейнеры и проверьте логи:**
    ```bash
    docker compose up -d && docker compose logs -f -t
-   ```
-
----
-
-## 🔄 Обновление приложения
-
-Так как образ автоматически собирается на Docker Hub при каждом коммите в ветку `main`, обновление на сервере занимает пару секунд:
-
-```bash
-docker compose pull && docker compose up -d
-```
