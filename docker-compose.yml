@@ -4,7 +4,7 @@ services:
     restart: always
     env_file:
       - .env
-    command: uv run sh -c "alembic upgrade head && python src/main.py"
+    command: uv run sh -c "alembic upgrade head && python -m src.main"
     depends_on:
       db:
         condition: service_healthy
