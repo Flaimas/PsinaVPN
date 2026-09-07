@@ -16,7 +16,8 @@ class NotificationService:
     BUY_TEXT: str = (
         "🎉 <b>Оплата прошла успешно!</b>\n\n"
         "Ваша подписка успешно активирована и готова к работе.\n\n"
-        "Нажмите на кнопку ниже, чтобы добавить конфигурацию в приложение:"
+        "<b>Ссылка для подключения (нажмите что бы скопировать):</b>\n"
+        "<blockquote><code>{sub_url}</code></blockquote>"
     )
 
     EXTEND_TEXT: str = (
@@ -41,8 +42,8 @@ class NotificationService:
 
         builder = InlineKeyboardBuilder()
         if operation == InvoiceOperation.BUY or operation == InvoiceOperation.CHANGE:
-            text = self.BUY_TEXT
-            builder.button(text="Подключиться", callback_data="instructions")
+            text = self.BUY_TEXT.format(sub_url=user_sub.sub_url)
+            builder.button(text="Как подключиться?", callback_data="instructions")
         elif operation == InvoiceOperation.EXTEND:
             text = self.EXTEND_TEXT.format(
                 sub_name=user_tariff.name if user_tariff else "NONE",

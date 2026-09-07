@@ -1,38 +1,45 @@
 services:
-  db:
-    image: postgres
+  psina-bot:
+    image: flaimas/psina-bot:latest
     restart: always
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER:-admin}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-admin}
-      - POSTGRES_DB=${DB_NAME:-postgres}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql
-  pgadmin:
-    image: dpage/pgadmin4:9.15.0
+    env_file:
+      - .env
+    command: uv run sh -c "alembic upgrade head && python src/main.py"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  db:
+    image: postgres:15-alpine
     restart: always
     environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@mail.ru
-      - PGADMIN_DEFAULT_PASSWORD=admin
-    ports:
-      - "8080:80"
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
+      POSTGRES_DB: ${DB_NAME:-postgres}
+    # ports убраны для безопасности. Бот видит БД по хосту 'db:5432'
     volumes:
-      - pgadmin_data:/var/lib/pgadmin
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
-    image: redis:8.6.4
+    image: redis:7-alpine
     restart: always
     command: redis-server --requirepass ${REDIS_PASSWORD:-default_dev_password}
-    ports:
-      - "6379:6379"
+    # ports убраны для безопасности. Бот видит Redis по хосту 'redis:6379'
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-default_dev_password}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
 volumes:
   postgres_data:
   redis_data:
-  pgadmin_data:

@@ -1,0 +1,25 @@
+# Git и конфиги
+.git
+.gitignore
+
+# Окружение и секреты (КРИТИЧНО)
+.env
+*.env
+
+# Виртуальные окружения и кэш Python
+.venv
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Docker конфиги
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Документация и тесты
+README.md
+tests/
+.pytest_cache/
