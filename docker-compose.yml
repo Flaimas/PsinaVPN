@@ -4,6 +4,8 @@ services:
     restart: always
     env_file:
       - .env
+    environment:
+      PYTHONPATH: /app
     command: uv run sh -c "alembic upgrade head && python -m src.main"
     depends_on:
       db:
