@@ -1,6 +1,6 @@
 # 🐕 PsinaVPN — Backend & Telegram Bot
 
-Асинхронный сервис управления VPN-инфраструктурой на базе **Xray-core** и панели **Remnawave**. Проект построен на современном стекe Python + FastAPI + Aiogram 3 с полной контейнеризацией через Docker.
+Асинхронный сервис управления VPN-инфраструктурой на базе **Xray-core** и панели **Remnawave**. Проект построен на современном стеке Python + FastAPI + Aiogram 3 с полной контейнеризацией через Docker.
 
 ---
 
@@ -19,7 +19,7 @@
 ## 🚀 Быстрый старт на VPS (Production)
 
 ### Требования
-1) Телеграм бот работает на основе панели [Remnawave](https://github.com/remnawave)
+1) Телеграм бот работает на основе панели Remnawave
 2) Для работы приложения на сервере требуется **Docker**. Если он ещё не установлен, выполните команду:
 
 ```bash
@@ -37,8 +37,8 @@ curl -fsSL [https://get.docker.com](https://get.docker.com) | sh
 
 2. **Загрузите конфигурационные файлы из репозитория:**
    ```bash
-   curl -o docker-compose.yml [https://raw.githubusercontent.com/Flaimas/PsinaVPN/main/docker-compose.yml](https://raw.githubusercontent.com/Flaimas/PsinaVPN/main/docker-compose.yml) &&
-   curl -o .env [https://raw.githubusercontent.com/Flaimas/PsinaVPN/main/.env.example](https://raw.githubusercontent.com/Flaimas/PsinaVPN/main/.env.example)
+   curl -o docker-compose.yml "[https://raw.githubusercontent.com/Flaimas/PsinaVPN/main/docker-compose.yml](https://raw.githubusercontent.com/Flaimas/PsinaVPN/main/docker-compose.yml)"
+   curl -o .env "[https://raw.githubusercontent.com/Flaimas/PsinaVPN/main/.env.example](https://raw.githubusercontent.com/Flaimas/PsinaVPN/main/.env.example)"
    ```
 
 3. **Настройте переменные окружения:**
@@ -50,3 +50,14 @@ curl -fsSL [https://get.docker.com](https://get.docker.com) | sh
 4. **Запустите контейнеры и проверьте логи:**
    ```bash
    docker compose up -d && docker compose logs -f -t
+   ```
+
+---
+
+## 🔄 Обновление приложения
+
+Так как образ автоматически собирается на Docker Hub при каждом коммите в ветку `main`, обновление на сервере занимает пару секунд:
+
+```bash
+docker compose pull && docker compose up -d
+```
