@@ -1,3 +1,5 @@
+import secrets
+
 from aiogram import Bot, Dispatcher
 from aiogram.types import Update
 from fastapi import APIRouter, Header, HTTPException, Request, status
@@ -14,7 +16,14 @@ async def telegram_webhook(
         default=None, alias="X-Telegram-Bot-Api-Secret-Token"
     ),
 ):
-    if secret_token != settings.TELEGRAM_SECRET_TOKEN:
+    if not settings.TELEGRAM_SECRET_TOKEN:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Server secret token is not configured",
+        )
+    if not secret_token or not secrets.compare_digest(
+        secret_token, settings.TELEGRAM_SECRET_TOKEN
+    ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invallid telegram token"
         )
