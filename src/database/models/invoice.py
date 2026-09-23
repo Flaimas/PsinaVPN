@@ -38,7 +38,7 @@ class Invoice(Base):
         nullable=False,
     )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.timezone("utc", func.now())
+        DateTime(timezone=True), server_default=func.now()
     )
     paid_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
