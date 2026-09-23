@@ -32,9 +32,11 @@ class UserRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def create_user(self, telegram_id: int, username: str | None) -> User:
+    async def create_user(
+        self, telegram_id: int, username: str | None, referrer_id: int | None = None
+    ) -> User:
         """Добавляет юзера в БД"""
-        user = User(telegram_id=telegram_id, username=username)
+        user = User(telegram_id=telegram_id, username=username, referrer_id=referrer_id)
         self.session.add(user)
         await self.session.flush()
         return user
