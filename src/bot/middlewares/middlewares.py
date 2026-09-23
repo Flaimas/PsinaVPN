@@ -13,7 +13,6 @@ from src.database.repositories.tariff import TariffRepository
 from src.database.repositories.user import UserRepository
 from src.services.payment.payment import PaymentService
 from src.services.payment.providers import get_payment_providers
-from src.services.tariff import TariffService
 
 
 class DbSessionMiddleware(BaseMiddleware):
@@ -53,13 +52,11 @@ class ServicesMiddleware(BaseMiddleware):
         sub_repo = SubscriptionRepository(session)
         ivoice_repo = InvoiceRepository(session)
 
-        tariff_service = TariffService()
         payment_service = PaymentService(
             invoice_repo=ivoice_repo,
             providers=get_payment_providers(),
         )
 
-        data["tariff_service"] = tariff_service
         data["payment_service"] = payment_service
         data["tariff_repo"] = tariff_repo
         data["user_repo"] = user_repo

@@ -1,5 +1,5 @@
 from aiogram.enums import ButtonStyle
-from aiogram.types import CopyTextButton
+from aiogram.types import CopyTextButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.bot.keyboards.callbacks import (
@@ -17,15 +17,15 @@ class SubManagamentInlineKeyboard:
         for sub in subscriptions:
             builder.button(
                 text=f"{sub.tariff.name} - до {sub.expired_at.strftime('%d.%m.%Y')}",
-                callback_data=ManagmentSubCallback(subscription_id=sub.id),
+                callback_data=ManagmentSubCallback(),
             )
         builder.button(text="Назад", callback_data="start")
         builder.adjust(1)
         return builder.as_markup()
 
     def managment_subscription(
-        self, selected_user_sub: Subscription, all_user_sub: list[Subscription]
-    ):
+        self, selected_user_sub: Subscription
+    ) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
         builder.button(
             text="Скопировать ссылку",
@@ -46,9 +46,6 @@ class SubManagamentInlineKeyboard:
             style=ButtonStyle.SUCCESS,
         )
         builder.button(text="Инструкция по подключению", callback_data="instructions")
-        if len(all_user_sub) == 1:
-            builder.button(text="Назад", callback_data="start")
-        else:
-            builder.button(text="Назад", callback_data="select_sub_for_management")
+        builder.button(text="Назад", callback_data="start")
         builder.adjust(1, 2, 1, 1)
         return builder.as_markup()

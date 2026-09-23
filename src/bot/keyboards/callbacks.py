@@ -1,11 +1,10 @@
 from aiogram.filters.callback_data import CallbackData
 
-from src.core.enums import InvoiceOperation, PaymentProvider, TariffCategory
+from src.core.enums import InvoiceOperation, PaymentProvider
 
 
 class TariffSelectCallback(CallbackData, prefix="tariffs"):
     operation: InvoiceOperation
-    category: TariffCategory | None = None
 
 
 class PricesTariffCallback(CallbackData, prefix="prices_tariff"):
@@ -18,15 +17,17 @@ class ChangeTariffCallback(CallbackData, prefix="change_tariff"):
 
 
 class BuyTariffCallback(CallbackData, prefix="buy_tariff"):
-    days_amount: int
+    tariff_option_id: int
 
 
-class PaymentProcessCallback(CallbackData, prefix="payment"):
+class PaymentProcessCallback(CallbackData, prefix="pay"):
     provider: PaymentProvider
+    tariff_option_id: int
+    operation: InvoiceOperation
 
 
 class ManagmentSubCallback(CallbackData, prefix="sub_menu"):
-    subscription_id: int
+    pass
 
 
 class InstuctionPlatform(CallbackData, prefix="instr"):

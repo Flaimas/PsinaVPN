@@ -5,16 +5,8 @@ from pydantic import BaseModel, ConfigDict, Field
 from src.core.enums import InvoiceOperation, PaymentProvider, PaymentStatus
 
 
-# Базовый конфиг для всех DTO, чтобы они были неизменяемыми (frozen), как датаклассы
 class StrictDTO(BaseModel):
     model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
-
-
-class TariffOption(StrictDTO):
-    period_days: int
-    base_price: int
-    discount_price: int
-    discount_percent: int
 
 
 class CreateInvoiceDTO(StrictDTO):

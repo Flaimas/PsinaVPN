@@ -24,7 +24,7 @@ async def cmd_start(
     assert message.from_user is not None
     await state.clear()
 
-    user = await user_repo.get_user_with_subscriptions(telegram_id=message.from_user.id)
+    user = await user_repo.get_user_with_subscription(telegram_id=message.from_user.id)
     is_create = False
     if user is None:
         user = await user_repo.create_user(
@@ -43,8 +43,8 @@ async def cmd_start(
             reply_markup=kb.start.get_main_inline_keyboard(),
         )
     else:
-        if user.subscriptions:
-            text_sub = start_texts.format_subscriptions_text(user.subscriptions)
+        if user.subscription:
+            text_sub = start_texts.format_subscriptions_text(user.subscription)
         else:
             text_sub = start_texts.NO_SUBSCRIPTIONS
 
@@ -57,9 +57,7 @@ async def cmd_start(
         await message.answer_photo(
             photo=DEFAULT_PHOTO,
             caption=text,
-            reply_markup=kb.start.get_main_inline_keyboard(
-                subscriptions=user.subscriptions
-            ),
+            reply_markup=kb.start.get_main_inline_keyboard(user_sub=user.subscription),
         )
 
 
@@ -72,15 +70,13 @@ async def callback_start(
 ):
     await state.clear()
 
-    user = await user_repo.get_user_with_subscriptions(
-        telegram_id=callback.from_user.id
-    )
+    user = await user_repo.get_user_with_subscription(telegram_id=callback.from_user.id)
     if user is None:
         await callback.answer(start_texts.PROFILE_NOT_FOUND, show_alert=True)
         return
 
-    if user.subscriptions:
-        text_sub = start_texts.format_subscriptions_text(user.subscriptions)
+    if user.subscription:
+        text_sub = start_texts.format_subscriptions_text(user.subscription)
     else:
         text_sub = start_texts.NO_SUBSCRIPTIONS
 
@@ -95,8 +91,6 @@ async def callback_start(
         callback=callback,
         media=DEFAULT_PHOTO,
         caption=text,
-        reply_markup=kb.start.get_main_inline_keyboard(
-            subscriptions=user.subscriptions
-        ),
+        reply_markup=kb.start.get_main_inline_keyboard(user_sub=user.subscription),
     )
     await callback.answer()

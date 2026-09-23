@@ -2,56 +2,63 @@ from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.bot.keyboards.callbacks import (
+    BuyTariffCallback,
     ManagmentSubCallback,
     PricesTariffCallback,
     TariffSelectCallback,
 )
+from src.bot.keyboards.helpers import calculate_discount_percent
 from src.core.enums import InvoiceOperation
-from src.database.models.tariff import Tariff
-from src.scheams.tariff import TariffOption
+from src.database.models.tariff import Tariff, TariffOption
 
 
 class SubscriptionInkineKeyBoard:
     def get_tariffs_keyboard(
-        self, database_tariffs: list[Tariff], operation: InvoiceOperation
+        self,
+        tariffs: list[Tariff],
+        operation: InvoiceOperation,
+        current_user_tariff_id: int | None,
     ) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
-        for tariff in database_tariffs:
-            text = f"{tariff.name} - {int(tariff.price)} руб."
-            builder.button(
-                text=text,
-                callback_data=PricesTariffCallback(
-                    tariff_id=tariff.id, operation=operation
-                ),
-            )
-        builder.button(text="↩︎ Назад", callback_data="start")
+        for tariff in tariffs:
+            if tariff.id != current_user_tariff_id:
+                text = f"{tariff.name}"
+                builder.button(
+                    text=text,
+                    callback_data=PricesTariffCallback(
+                        tariff_id=tariff.id, operation=operation
+                    ),
+                )
+
+        if operation == InvoiceOperation.BUY:
+            callback_data = "start"
+        else:
+            callback_data = ManagmentSubCallback()
+        builder.button(text="↩︎ Назад", callback_data=callback_data)
         builder.adjust(1)
         return builder.as_markup()
 
     def get_tariff_prices(
         self,
-        options: list[TariffOption],
-        user_sub_id: int | None,
+        tariff_options: list[TariffOption],
         operation: InvoiceOperation,
     ) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
 
-        for opt in options:
-            if opt.discount_percent > 0:
-                text = f"{opt.period_days} дней {opt.discount_price} руб. -{opt.discount_percent}%"
+        for opt in tariff_options:
+            if opt.old_price is not None:
+                text = f"{opt.period_days} дней | {opt.price} руб. -{calculate_discount_percent(opt.old_price, opt.price)}%"
             else:
-                text = f"{opt.period_days} дней - {opt.base_price} руб."
-            builder.button(text=text, callback_data=f"buy_tariff:{opt.period_days}")
+                text = f"{opt.period_days} дней | {opt.price} руб."
+            builder.button(
+                text=text, callback_data=BuyTariffCallback(tariff_option_id=opt.id)
+            )
 
-        if user_sub_id:
-            builder.button(
-                text="↩︎ Назад",
-                callback_data=ManagmentSubCallback(subscription_id=user_sub_id),
-            )
-        else:
-            builder.button(
-                text="↩︎ Назад", callback_data=TariffSelectCallback(operation=operation)
-            )
+        callback_data = TariffSelectCallback(operation=operation)
+        if operation == InvoiceOperation.EXTEND:
+            callback_data = ManagmentSubCallback()
+
+        builder.button(text="↩︎ Назад", callback_data=callback_data)
         builder.adjust(1)
         return builder.as_markup()
 

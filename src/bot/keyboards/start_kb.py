@@ -9,29 +9,21 @@ from src.database.models.subscription import Subscription
 class StartInlineKeyboard:
     def get_main_inline_keyboard(
         self,
-        subscriptions: list[Subscription] | None = None,
+        user_sub: Subscription | None = None,
     ) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
-        subs = subscriptions or []
 
-        match len(subs):
-            case 0:
-                builder.button(
-                    text="🛍️ Купить VPN",
-                    callback_data=TariffSelectCallback(operation=InvoiceOperation.BUY),
-                )
-            case 1:
-                builder.button(
-                    text="💎 Управление подпиской",
-                    callback_data=ManagmentSubCallback(subscription_id=subs[0].id),
-                )
-                builder.button(text="Инструкции", callback_data="instructions")
-            case _:
-                builder.button(
-                    text="💎 Управление подписками",
-                    callback_data="select_sub_for_management",
-                )
-                builder.button(text="Инструкции", callback_data="instructions")
+        if user_sub is None:
+            builder.button(
+                text="🛍️ Купить VPN",
+                callback_data=TariffSelectCallback(operation=InvoiceOperation.BUY),
+            )
+        else:
+            builder.button(
+                text="💎 Управление подпиской",
+                callback_data=ManagmentSubCallback(),
+            )
+            builder.button(text="Инструкции", callback_data="instructions")
 
         builder.button(text="Помощь", callback_data="help")
         builder.adjust(1)

@@ -43,6 +43,7 @@ class Invoice(Base):
     paid_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    converted_days: Mapped[int] = mapped_column(nullable=False, server_default="0")
     operation: Mapped[InvoiceOperation] = mapped_column(
         String(10),
         default=InvoiceOperation.BUY,

@@ -19,13 +19,17 @@ class PaymentInlineKeyboard:
     )
 
     def select_payment_provider_kb(
-        self, tariff_id: int, operation: InvoiceOperation
+        self, tariff_id: int, operation: InvoiceOperation, tariff_option_id: int
     ) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
         for provider in settings.PAYMENT_PROVIDERS:
             builder.button(
                 text=self.PROVIDER_TITLES[provider],
-                callback_data=PaymentProcessCallback(provider=provider),
+                callback_data=PaymentProcessCallback(
+                    provider=provider,
+                    operation=operation,
+                    tariff_option_id=tariff_option_id,
+                ),
             )
         builder.button(text="Главное меню", callback_data="start")
         builder.button(

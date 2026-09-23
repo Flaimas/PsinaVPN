@@ -31,8 +31,9 @@ class User(Base):
     is_banned: Mapped[bool] = mapped_column(
         nullable=False, default=False, server_default="false"
     )
+    is_test_used: Mapped[bool] = mapped_column(default=False, server_default="false")
 
-    subscriptions: Mapped[list[Subscription]] = relationship(
-        back_populates="user", order_by="Subscription.expired_at.asc()"
+    subscription: Mapped[Subscription | None] = relationship(
+        back_populates="user", uselist=False
     )
     invoices: Mapped[list[Invoice]] = relationship(back_populates="user")

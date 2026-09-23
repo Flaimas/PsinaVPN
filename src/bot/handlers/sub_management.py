@@ -1,4 +1,4 @@
-from aiogram import F, Router
+from aiogram import Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
@@ -14,32 +14,6 @@ from src.database.repositories.user import UserRepository
 router = Router()
 
 
-@router.callback_query(F.data.startswith("select_sub_for_management"))
-async def menu(
-    callback: CallbackQuery, user_repo: UserRepository, kb: InlineKB, state: FSMContext
-):
-    await callback.answer()
-    user = await user_repo.get_user_with_subscriptions(
-        telegram_id=callback.from_user.id
-    )
-    if not user:
-        callback.answer(text="Ошибка, пользователь не найден.", show_alert=True)
-        await state.clear()
-        return
-    if not user.subscriptions:
-        callback.answer(text="У вас нет ни одной подписки!", show_alert=True)
-        await state.clear()
-        return
-
-    text = "Выберите подписку:"
-    await edit_callback_media(
-        callback=callback,
-        media=DEFAULT_PHOTO,
-        caption=text,
-        reply_markup=kb.sub_management.select_subscription(user.subscriptions),
-    )
-
-
 @router.callback_query(ManagmentSubCallback.filter())
 async def sub_menu(
     callback: CallbackQuery,
@@ -53,41 +27,33 @@ async def sub_menu(
     await state.set_state(
         OrderTariffStates.extend_subscription,
     )
-    user = await user_repo.get_user_with_subscriptions(
-        telegram_id=callback.from_user.id
-    )
+    user = await user_repo.get_user_with_subscription(telegram_id=callback.from_user.id)
     if not user:
         await callback.answer(
             text="Ошибка! Пользователь не найден в системе!", show_alert=True
         )
         return
-
-    current_sub = next(
-        (sub for sub in user.subscriptions if sub.id == callback_data.subscription_id),
-        None,
-    )
-    if not current_sub:
+    user_sub = user.subscription
+    if not user_sub:
         await callback.answer(
             text="Ошибка, данной подписки нет у пользователя!", show_alert=True
         )
         return
 
     await state.update_data(
-        user_sub_id=current_sub.id,
-        tariff_id=current_sub.tariff.id,
+        user_sub_id=user_sub.id,
+        tariff_id=user_sub.tariff.id,
         operation=InvoiceOperation.EXTEND,
     )
 
     text = sub_managment_text.SUB_MANAGEMENT.format(
-        sub_name=current_sub.tariff.name,
-        expired_at=current_sub.expired_at.strftime("%d.%m.%Y"),
-        url=current_sub.sub_url,
+        sub_name=user_sub.tariff.name,
+        expired_at=user_sub.expired_at.strftime("%d.%m.%Y"),
+        url=user_sub.sub_url,
     )
     await edit_callback_media(
         callback=callback,
         media=DEFAULT_PHOTO,
         caption=text,
-        reply_markup=kb.sub_management.managment_subscription(
-            current_sub, user.subscriptions
-        ),
+        reply_markup=kb.sub_management.managment_subscription(user_sub),
     )

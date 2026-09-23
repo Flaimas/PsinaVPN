@@ -13,10 +13,10 @@ class ProcessPaymentUseCase:
         subscription_service: SubscriptionService,
         notifier: NotificationService,
     ) -> None:
-        self.session = session
-        self.invoice_repo = invoice_repo
-        self.subscriprion_service = subscription_service
-        self.notifier = notifier
+        self.session: AsyncSession = session
+        self.invoice_repo: InvoiceRepository = invoice_repo
+        self.subscriprion_service: SubscriptionService = subscription_service
+        self.notifier: NotificationService = notifier
 
     async def execute(self, provider_payment_id: str) -> bool:
         async with self.session.begin_nested():
@@ -29,10 +29,12 @@ class ProcessPaymentUseCase:
             invoice = await self.invoice_repo.get_with_relations(
                 invoice_id=updated_invoice.id
             )
-            user_sub = await self.subscriprion_service.grant_subscription_for_invoice(
+            result = await self.subscriprion_service.grant_subscription_for_invoice(
                 invoice=invoice
             )
-            invoice.subscription_id = user_sub.id
+            invoice.subscription_id = result.subscription.id
+            invoice.converted_days = result.converted_days
+            user_sub = result.subscription
 
         await self.notifier.notify_payment_success(
             telegram_id=user_sub.user.telegram_id,

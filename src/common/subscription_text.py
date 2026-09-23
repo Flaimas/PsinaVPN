@@ -8,7 +8,7 @@ class SubscriptionText:
     def format_tariffs_menu(self, tariffs: list[Tariff]):
         text = "<b>Доступные тарифы</b>\n\n"
         for t in tariffs:
-            text += f"<blockquote>{self.format_tariff_description(t)}</blockquote>"
+            text += f"<blockquote>{self.format_tariff_description(t)}</blockquote>\n"
         return text
 
     def format_tariff_description(

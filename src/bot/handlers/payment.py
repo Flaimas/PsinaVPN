@@ -1,5 +1,3 @@
-from datetime import UTC, datetime
-
 from aiogram import Router
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
@@ -19,7 +17,6 @@ from src.database.repositories.user import UserRepository
 from src.scheams.payment import PaymentContext
 from src.services.payment.exceptions import PaymentServiceError
 from src.services.payment.payment import PaymentService
-from src.services.tariff import TariffService
 
 router = Router()
 
@@ -36,59 +33,49 @@ async def buy_tariff_menu(
     callback: CallbackQuery,
     callback_data: BuyTariffCallback,
     tariff_repo: TariffRepository,
-    tariff_service: TariffService,
     sub_repo: SubscriptionRepository,
     kb: InlineKB,
     state: FSMContext,
 ):
-    state_data = await state.get_data()
     user_state = await state.get_state()
-    selected_tariff = state_data.get("tariff_id")
-    user_sub_id = state_data.get("user_sub_id")
 
-    days_left = None
-    if user_state == OrderTariffStates.change_subscription and user_sub_id:
-        user_subscription = await sub_repo.get_subscription_by_id(sub_id=user_sub_id)
-
+    user_subscription = None
+    if user_state == OrderTariffStates.change_subscription:
+        user_subscription = await sub_repo.get_by_tg_id_with_relations(
+            telegram_id=callback.from_user.id
+        )
         if not user_subscription:
             await callback.answer(
-                "Ошибка: подписка не найдена. Перезапустите бота командой /start"
+                "Что бы сменить подписку. у вас должна быть другая активная подписка!"
             )
             return
-        days_left = (user_subscription.expired_at - datetime.now(UTC)).days
-        days_left = max(0, days_left)
         operation = InvoiceOperation.CHANGE
 
-    elif OrderTariffStates.extend_subscription:
+    elif user_state == OrderTariffStates.extend_subscription:
         operation = InvoiceOperation.EXTEND
-    else:
+
+    elif user_state == OrderTariffStates.buy_subscription:
         operation = InvoiceOperation.BUY
 
-    if not selected_tariff:
-        await callback.answer(payment_texts.SESSION_EXPIRED, show_alert=True)
+    tariff_option = await tariff_repo.get_tariff_option_by_id(
+        callback_data.tariff_option_id
+    )
+
+    if not tariff_option:
+        await callback.answer(
+            "Для данного тарифа нет доступных опций.", show_alert=True
+        )
         return
 
-    tariff = await tariff_repo.get_active_tariff_by_id(selected_tariff)
-    if not tariff:
+    selected_tariff = await tariff_repo.get_active_tariff_by_id(tariff_option.tariff_id)
+    if not selected_tariff:
         await callback.answer(payment_texts.TARIFF_NOT_FOUND, show_alert=True)
         return
 
-    subscription = tariff_service.calculate_subscription_price(
-        price=tariff.price, target_period=callback_data.days_amount
-    )
-
-    await state.update_data(
-        price=subscription.discount_price,
-        period=callback_data.days_amount,
-        tariff_id=tariff.id,
-    )
-
     text = payment_texts.format_order_confirmation(
-        selected_tariff=tariff,
-        days_amount=callback_data.days_amount,
-        base_price=subscription.base_price,
-        discount_price=subscription.discount_price,
-        days_left=days_left,
+        selected_tariff=selected_tariff,
+        tariff_option=tariff_option,
+        user_subscription=user_subscription,
     )
 
     await edit_callback_media(
@@ -96,7 +83,9 @@ async def buy_tariff_menu(
         media=DEFAULT_PHOTO,
         caption=text,
         reply_markup=kb.payment.select_payment_provider_kb(
-            tariff_id=selected_tariff, operation=operation
+            tariff_id=selected_tariff.id,
+            operation=operation,
+            tariff_option_id=tariff_option.id,
         ),
     )
     await callback.answer()
@@ -117,18 +106,33 @@ async def payment_process(
     kb: InlineKB,
     user_repo: UserRepository,
     payment_service: PaymentService,
+    tariff_repo: TariffRepository,
 ):
-    state_data = await state.get_data()
-    user = await user_repo.get_user_by_tg_id(telegram_id=callback.from_user.id)
+    user = await user_repo.get_user_with_subscription(telegram_id=callback.from_user.id)
+    tariff_option = await tariff_repo.get_tariff_option_by_id(
+        callback_data.tariff_option_id
+    )
 
     await state.set_state(OrderTariffStates.waiting_for_payment)
 
     if user is None:
         await callback.answer(payment_texts.USER_NOT_FOUND, show_alert=True)
         return
-
+    if tariff_option is None:
+        await callback.answer("Ошибка, опция тарифа не найдена.", show_alert=True)
+        return
+    user_subscription = user.subscription
+    user_sub_id = None if not user_subscription else user_subscription.id
     try:
-        ctx = PaymentContext(user=user, provider=callback_data.provider, **state_data)
+        ctx = PaymentContext(
+            user=user,
+            provider=callback_data.provider,
+            operation=callback_data.operation,
+            tariff_id=tariff_option.tariff_id,
+            price=tariff_option.price,
+            period=tariff_option.period_days,
+            user_sub_id=user_sub_id,
+        )
     except ValidationError as e:
         print(e)
         await callback.answer(payment_texts.DATA_ERROR, show_alert=True)
@@ -136,7 +140,7 @@ async def payment_process(
 
     if ctx.operation != InvoiceOperation.BUY and ctx.user_sub_id is None:
         await callback.answer(
-            "Ошибка, перезапусnите бота командой /start", show_alert=True
+            "Ошибка, подписка для продления/измененеия не найдена!", show_alert=True
         )
         return
 

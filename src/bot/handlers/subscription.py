@@ -15,7 +15,6 @@ from src.core.enums import InvoiceOperation
 from src.core.media_config import DEFAULT_PHOTO
 from src.database.repositories.subscription import SubscriptionRepository
 from src.database.repositories.tariff import TariffRepository
-from src.services.tariff import TariffService
 
 router = Router()
 
@@ -30,36 +29,31 @@ async def process_tariff_select(
     state: FSMContext,
 ):
     operation = callback_data.operation
-    category = callback_data.category
 
-    tariffs = await tariff_repo.get_available_tariffs_for_user(
-        telegram_id=callback.from_user.id, category=category
-    )
-    user_subscriptions = await sub_repo.get_subscriptions_by_tg_id(
-        telegram_id=callback.from_user.id
-    )
+    tariffs = await tariff_repo.get_active_tariffs()
+    user_subscription = await sub_repo.get_by_tg_id(telegram_id=callback.from_user.id)
 
-    state_data = await state.get_data()
-    user_current_tariff = state_data.get("tariff_id")
-
+    user_tariff_id = None
     if operation == InvoiceOperation.CHANGE:
-        if not user_subscriptions or not user_current_tariff:
-            await callback.answer(
-                "Упс.. У вас нет ни одной активной подписки!", show_alert=True
-            )
+        if not user_subscription:
+            await callback.answer("Упс.. У вас нет активной подписки!", show_alert=True)
             return
         await state.set_state(OrderTariffStates.change_subscription)
+        user_tariff_id = user_subscription.tariff_id
 
     elif operation == InvoiceOperation.BUY:
         await state.set_state(OrderTariffStates.buy_subscription)
 
-    await state.update_data(operation=operation)
+    elif operation == InvoiceOperation.EXTEND:
+        await state.set_state(OrderTariffStates.extend_subscription)
 
     await edit_callback_media(
         callback=callback,
         media=DEFAULT_PHOTO,
         caption=subscription_text.format_tariffs_menu(tariffs),
-        reply_markup=kb.subscription.get_tariffs_keyboard(tariffs, operation),
+        reply_markup=kb.subscription.get_tariffs_keyboard(
+            tariffs=tariffs, current_user_tariff_id=user_tariff_id, operation=operation
+        ),
     )
 
     await callback.answer()
@@ -78,7 +72,6 @@ async def prices_tariff_menu(
     callback: CallbackQuery,
     callback_data: PricesTariffCallback,
     tariff_repo: TariffRepository,
-    tariff_service: TariffService,
     kb: InlineKB,
     state: FSMContext,
 ):
@@ -86,12 +79,9 @@ async def prices_tariff_menu(
     tariff_id = callback_data.tariff_id
     tariff = await tariff_repo.get_active_tariff_by_id(tariff_id)
     if not tariff:
-        await callback.answer("Тариф не найден", show_alert=True)
+        await callback.answer("Тариф не найден или больше не активен", show_alert=True)
         return
-    options = tariff_service.calculate_period_price(price=tariff.price)
     operation = callback_data.operation
-    state_data = await state.get_data()
-    user_sub_id = state_data.get("user_sub_id")
     text = "Выберите срок действия подписки."
 
     await state.update_data(tariff_id=tariff_id)
@@ -100,6 +90,6 @@ async def prices_tariff_menu(
         callback=callback,
         media=DEFAULT_PHOTO,
         caption=text,
-        reply_markup=kb.subscription.get_tariff_prices(options, user_sub_id, operation),
+        reply_markup=kb.subscription.get_tariff_prices(tariff.options, operation),
     )
     await callback.answer()

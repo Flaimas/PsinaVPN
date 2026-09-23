@@ -6,6 +6,7 @@ from httpx import AsyncClient, Response
 from loguru import logger
 
 from src.core.config import settings
+from src.services.vpn.base import BaseVPNClient
 
 from .exceptions import (
     RemnawaveConnectionError,
@@ -21,7 +22,7 @@ from .models import (
 )
 
 
-class RemnawaveClient:
+class RemnawaveClient(BaseVPNClient):
     def __init__(self) -> None:
         self.headers = {
             "Content-Type": "application/json",
@@ -137,6 +138,17 @@ class RemnawaveClient:
             method="PATCH",
             endpoint="/api/users",
             json_data=payload.model_dump(mode="json", exclude_none=True),
+        )
+        data = response.json()
+        return RemnawaveUserResponse.model_validate(data.get("response", data))
+
+    async def extend_user_expiration_date(
+        self, user_remnawave_id: int, days: int
+    ) -> RemnawaveUserResponse:
+        response = await self._send_request(
+            method="POST",
+            endpoint=f"/api/users/{user_remnawave_id}/actions/extend",
+            json_data={"days": days},
         )
         data = response.json()
         return RemnawaveUserResponse.model_validate(data.get("response", data))

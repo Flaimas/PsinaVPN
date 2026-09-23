@@ -43,7 +43,9 @@ class RemnawaveCreateUserRequest(RemnawaveBaseModel):
     traffic_limit_bytes: int
     traffic_limit_strategy: TrafficLimitStrategy = TrafficLimitStrategy.NO_RESET
     status: Status = Status.ACTIVE
-    active_internal_squads: list[UUID] | None = None
+    hwid_device_limit: int = 0
+    active_internal_squads: list[UUID]
+    external_squad_uuid: UUID | None = None
 
 
 class RemnawaveUpdateUser(RemnawaveBaseModel):
@@ -51,8 +53,10 @@ class RemnawaveUpdateUser(RemnawaveBaseModel):
     expire_at: datetime
     status: Status = Status.ACTIVE
     traffic_limit_bytes: int
+    hwid_device_limit: int = 0
     used_traffic_bytes: int = 0
     active_internal_squads: list[UUID] | None = None
+    external_squad_uuid: UUID | None = None
 
 
 class RemnawaveUserResponse(RemnawaveBaseModel):
@@ -65,3 +69,4 @@ class RemnawaveUserResponse(RemnawaveBaseModel):
     used_traffic_bytes: int = 0
     subscription_url: str
     active_internal_squads: list[InternalSquad] = Field(default_factory=list)
+    external_squad_uuid: UUID | None = None

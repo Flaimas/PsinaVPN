@@ -1,6 +1,10 @@
 from dataclasses import dataclass
+from datetime import UTC, datetime
+from decimal import Decimal
 
-from src.database.models.tariff import Tariff
+from src.database.models.subscription import Subscription
+from src.database.models.tariff import Tariff, TariffOption
+from src.services.subscription_calculator import SubscriptionCalculator
 
 
 @dataclass(frozen=True)
@@ -17,18 +21,16 @@ class PaymentTexts:
 
     @staticmethod
     def format_order_confirmation(
+        tariff_option: TariffOption,
         selected_tariff: Tariff,
-        days_amount: int,
-        base_price: float,
-        discount_price: float,
-        days_left: int | None = None,
+        user_subscription: Subscription | None = None,
     ) -> str:
         lines = []
 
         lines.append(
             f"<b>Подтверждение заказа</b>\n\n"
             f"📋 <b>Тариф:</b> {selected_tariff.name}\n"
-            f"⏳ <b>Срок:</b> {days_amount} дней"
+            f"⏳ <b>Срок:</b> {tariff_option.period_days} дней"
         )
 
         if selected_tariff.traffic_limit > 0:
@@ -36,20 +38,31 @@ class PaymentTexts:
                 f"⏳ <b>Трафик белых списков:</b> {selected_tariff.traffic_limit} ГБ\n"
             )
 
-        if base_price == discount_price:
-            lines.append(f"💰 <b>Цена:</b> {discount_price:.0f} руб.\n")
+        if tariff_option.old_price is None:
+            lines.append(f"💰 <b>Цена:</b> {tariff_option.price:.0f} руб.\n")
         else:
             lines.append(
-                f"<s>Старая цена: {base_price:.0f} руб.</s>\n"
-                f"🔥 <b>Цена со скидкой:</b> {discount_price:.0f} руб."
+                f"💸 <b>Старая цена:</b> <s>{tariff_option.old_price:.0f} руб.</s>\n"
+                f"🔥 <b>Цена со скидкой:</b> {tariff_option.price:.0f} руб."
             )
 
-        if days_left and days_left > 0:
-            lines.append(
-                f"⚠️ <b>Внимание:</b> Ваша текущая подписка "
-                f"(осталось {days_left} дн.) будет аннулирована "
-                f"без перерасчета остатка."
+        if user_subscription is not None:
+            now = datetime.now(UTC)
+            expire_at = user_subscription.expired_at
+            remaining_days = max(0, (expire_at - now).days)
+            result = SubscriptionCalculator.calculate_change_tariff(
+                current_expire_at=expire_at,
+                duration_days=tariff_option.period_days,
+                price=Decimal(tariff_option.price),
+                daily_rate=user_subscription.daily_rate,
+                now=now,
             )
+            if remaining_days > 0:
+                lines.append(
+                    "\n<b>⚠️ Перерасчет текущей подписки:</b>\n"
+                    f"У вас осталось <b>{remaining_days}</b> дней текущего тарифа. При переходе они конвертируются в 18 дней тарифа «{selected_tariff.name}».\n"
+                    f"<b>📅 Итого подписки:</b> <b>{tariff_option.period_days}</b> дней (заказ) + <b>{result.converted_days}</b> дней (перерасчет) = <b>{result.converted_days + tariff_option.period_days}</b> дней\n"
+                )
         lines.append("<b>Выберите способ оплаты:</b>")
         return "\n".join(lines)
 

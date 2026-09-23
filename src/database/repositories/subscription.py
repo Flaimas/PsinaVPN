@@ -1,9 +1,9 @@
 from datetime import datetime
-from uuid import UUID
+from decimal import Decimal
 
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
 from src.core.enums import TariffCategory
 from src.database.models.subscription import Subscription
@@ -21,8 +21,8 @@ class SubscriptionRepository:
         sub_url: str,
         remnawave_user_id: int,
         expired_at: datetime,
+        daily_rate: Decimal,
         tariff_category: TariffCategory,
-        squad_uuids: list[UUID],
     ) -> Subscription:
 
         subscription = Subscription(
@@ -32,7 +32,7 @@ class SubscriptionRepository:
             remnawave_user_id=remnawave_user_id,
             sub_url=sub_url,
             expired_at=expired_at,
-            squad_uuids=squad_uuids,
+            daily_rate=daily_rate,
         )
         self.session.add(subscription)
         await self.session.flush()
@@ -43,13 +43,11 @@ class SubscriptionRepository:
         result = await self.session.execute(stmt)
         return result.rowcount > 0  # type: ignore
 
-    async def update_expired_at_subscription(
-        self, sub_id: int, new_expired_at: datetime, **kwargs
-    ) -> Subscription:
+    async def update_subscription(self, sub_id: int, **kwargs) -> Subscription:
         stmt = (
             update(Subscription)
             .where(Subscription.id == sub_id)
-            .values(expired_at=new_expired_at, **kwargs)
+            .values(**kwargs)
             .returning(Subscription)
         )
         result = await self.session.execute(stmt)
@@ -72,10 +70,22 @@ class SubscriptionRepository:
         result = await self.session.execute(stmt)
         return list(result.scalars().unique().all())
 
-    async def get_subscriptions_by_tg_id(self, telegram_id: int) -> list[Subscription]:
+    async def get_by_tg_id_with_relations(
+        self, telegram_id: int
+    ) -> Subscription | None:
+        stmt = (
+            select(Subscription)
+            .join(User)
+            .where(User.telegram_id == telegram_id)
+            .options(selectinload(Subscription.user), selectinload(Subscription.tariff))
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def get_by_tg_id(self, telegram_id: int) -> Subscription | None:
         stmt = select(Subscription).join(User).where(User.telegram_id == telegram_id)
         result = await self.session.execute(stmt)
-        return list(result.scalars().all())
+        return result.scalar_one_or_none()
 
     async def get_subscription_by_id(self, sub_id: int):
         stmt = select(Subscription).where(Subscription.id == sub_id)

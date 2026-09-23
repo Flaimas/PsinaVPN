@@ -20,7 +20,6 @@ services:
       POSTGRES_USER: ${DB_USER:-admin}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-admin}
       POSTGRES_DB: ${DB_NAME:-postgres}
-    # ports убраны для безопасности. Бот видит БД по хосту 'db:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

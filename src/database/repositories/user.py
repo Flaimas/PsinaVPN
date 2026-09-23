@@ -16,11 +16,11 @@ class UserRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_user_with_subscriptions(self, telegram_id: int) -> User | None:
+    async def get_user_with_subscription(self, telegram_id: int) -> User | None:
         query = (
             select(User)
             .where(User.telegram_id == telegram_id)
-            .options(joinedload(User.subscriptions).joinedload(Subscription.tariff))
+            .options(joinedload(User.subscription).joinedload(Subscription.tariff))
         )
 
         result = await self.session.execute(query)

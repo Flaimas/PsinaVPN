@@ -15,14 +15,13 @@ from src.database.connection import session_factory
 from src.services.cache import warm_up_banned_users_cache
 from src.services.payment.providers import get_payment_providers
 from src.services.vpn.client import RemnawaveClient
-from src.tests.services.vpn.client import FakeRemnawaveClient
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logging()
 
-    vpn_client = FakeRemnawaveClient() if settings.DEBUG else RemnawaveClient()
+    vpn_client = RemnawaveClient()
     await vpn_client.open()
 
     redis_client = Redis(
