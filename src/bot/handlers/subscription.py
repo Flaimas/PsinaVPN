@@ -10,9 +10,9 @@ from src.bot.keyboards.callbacks import (
 )
 from src.bot.states import OrderTariffStates
 from src.bot.utils.message import edit_callback_media
+from src.common.bot_photos import DEFAULT_PHOTO
 from src.common.subscription_text import subscription_text
 from src.core.enums import InvoiceOperation
-from src.core.media_config import DEFAULT_PHOTO
 from src.database.repositories.subscription import SubscriptionRepository
 from src.database.repositories.tariff import TariffRepository
 

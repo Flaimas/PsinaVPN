@@ -8,9 +8,9 @@ from src.bot.keyboards import InlineKB
 from src.bot.keyboards.callbacks import BuyTariffCallback, PaymentProcessCallback
 from src.bot.states import OrderTariffStates
 from src.bot.utils.message import edit_callback_media
+from src.common.bot_photos import DEFAULT_PHOTO
 from src.common.payment_texts import payment_texts
 from src.core.enums import InvoiceOperation
-from src.core.media_config import DEFAULT_PHOTO
 from src.database.repositories.subscription import SubscriptionRepository
 from src.database.repositories.tariff import TariffRepository
 from src.database.repositories.user import UserRepository

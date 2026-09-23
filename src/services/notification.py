@@ -6,8 +6,8 @@ from aiogram.types import InlineKeyboardMarkup, InputMediaPhoto
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from loguru import logger
 
+from src.common.bot_photos import DEFAULT_PHOTO
 from src.core.enums import InvoiceOperation
-from src.core.media_config import DEFAULT_PHOTO
 from src.database.models.subscription import Subscription
 from src.database.models.tariff import Tariff
 

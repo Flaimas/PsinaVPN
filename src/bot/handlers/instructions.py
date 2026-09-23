@@ -4,8 +4,8 @@ from aiogram.types import CallbackQuery
 from src.bot.keyboards import InlineKB
 from src.bot.keyboards.callbacks import InstuctionPlatform
 from src.bot.utils.message import edit_callback_media
+from src.common.bot_photos import DEFAULT_PHOTO
 from src.common.instructions_text import platform_instructions
-from src.core.media_config import DEFAULT_PHOTO
 
 router = Router()
 

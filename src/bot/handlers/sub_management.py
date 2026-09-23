@@ -6,9 +6,9 @@ from src.bot.keyboards import InlineKB
 from src.bot.keyboards.callbacks import ManagmentSubCallback
 from src.bot.states import OrderTariffStates
 from src.bot.utils.message import edit_callback_media
+from src.common.bot_photos import DEFAULT_PHOTO
 from src.common.subscription_text import sub_managment_text
 from src.core.enums import InvoiceOperation
-from src.core.media_config import DEFAULT_PHOTO
 from src.database.repositories.user import UserRepository
 
 router = Router()
