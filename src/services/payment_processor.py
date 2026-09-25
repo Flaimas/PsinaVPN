@@ -1,6 +1,8 @@
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.repositories.invoice import InvoiceRepository
+from src.services.bonus import BonusResult, BonusService
 from src.services.notification import NotificationService
 from src.services.subscription import SubscriptionService
 
@@ -12,11 +14,13 @@ class ProcessPaymentUseCase:
         invoice_repo: InvoiceRepository,
         subscription_service: SubscriptionService,
         notifier: NotificationService,
+        bonus_service: BonusService,
     ) -> None:
         self.session: AsyncSession = session
         self.invoice_repo: InvoiceRepository = invoice_repo
         self.subscriprion_service: SubscriptionService = subscription_service
         self.notifier: NotificationService = notifier
+        self.bonus_service: BonusService = bonus_service
 
     async def execute(self, provider_payment_id: str) -> bool:
         async with self.session.begin_nested():
@@ -36,10 +40,24 @@ class ProcessPaymentUseCase:
             invoice.converted_days = result.converted_days
             user_sub = result.subscription
 
-        await self.notifier.notify_payment_success(
-            telegram_id=user_sub.user.telegram_id,
-            operation=updated_invoice.operation,
-            user_sub=user_sub,
-            user_tariff=updated_invoice.tariff,
-        )
+            bonus_result: (
+                BonusResult | None
+            ) = await self.bonus_service.process_referral_bonus(invoice=invoice)
+
+        try:
+            if bonus_result:
+                await self.notifier.notify_referrer_bonus(
+                    telegram_id=bonus_result.referrer_tg_id,
+                    bonus_amount=bonus_result.amount,
+                )
+
+            await self.notifier.notify_payment_success(
+                telegram_id=user_sub.user.telegram_id,
+                operation=updated_invoice.operation,
+                user_sub=user_sub,
+                user_tariff=updated_invoice.tariff,
+            )
+
+        except Exception as e:
+            logger.exception(e)
         return True

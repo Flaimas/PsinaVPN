@@ -1,7 +1,11 @@
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.bot.keyboards.callbacks import ManagmentSubCallback, TariffSelectCallback
+from src.bot.keyboards.callbacks import (
+    ManagmentSubCallback,
+    ReferralMenuCallback,
+    TariffSelectCallback,
+)
 from src.core.enums import InvoiceOperation
 from src.database.models.subscription import Subscription
 
@@ -25,6 +29,8 @@ class StartInlineKeyboard:
             )
             builder.button(text="Инструкции", callback_data="instructions")
 
+        builder.button(text="Реферальное меню", callback_data=ReferralMenuCallback())
+        builder.adjust(1)
         builder.button(text="Помощь", callback_data="help")
         builder.adjust(1)
         return builder.as_markup()

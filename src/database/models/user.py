@@ -26,7 +26,10 @@ class User(Base):
         DateTime(timezone=True), server_default=func.now()
     )
     referrer_id: Mapped[int | None] = mapped_column(
-        BigInteger, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+        BigInteger,
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
     )
     balance: Mapped[float] = mapped_column(
         default=settings.START_BALANCE, server_default="0.0", nullable=False

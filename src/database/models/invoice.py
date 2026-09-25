@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from datetime import datetime
+from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Float, ForeignKey, String, func
+from sqlalchemy import DateTime, ForeignKey, Numeric, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.enums import InvoiceOperation, PaymentProvider, PaymentStatus
@@ -19,16 +20,18 @@ if TYPE_CHECKING:
 class Invoice(Base):
     __tablename__ = "invoices"
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
-    tariff_id: Mapped[int | None] = mapped_column(ForeignKey("tariffs.id"))
+    tariff_id: Mapped[int] = mapped_column(
+        ForeignKey("tariffs.id", ondelete="RESTRICT"), nullable=False
+    )
     subscription_id: Mapped[int | None] = mapped_column(
         ForeignKey("subscriptions.id", ondelete="SET NULL"), nullable=True
     )
     provider: Mapped[PaymentProvider] = mapped_column(String(20), nullable=False)
     provider_payment_id: Mapped[str] = mapped_column(String, unique=True, index=True)
-    amount: Mapped[float] = mapped_column(Float)
+    amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     duration_days: Mapped[int] = mapped_column(nullable=False)
 
     status: Mapped[PaymentStatus] = mapped_column(
@@ -50,6 +53,6 @@ class Invoice(Base):
         server_default=InvoiceOperation.BUY.value,
         nullable=False,
     )
-    user: Mapped[User | None] = relationship(back_populates="invoices")
-    tariff: Mapped[Tariff | None] = relationship(back_populates="invoices")
+    user: Mapped[User] = relationship(back_populates="invoices")
+    tariff: Mapped[Tariff] = relationship(back_populates="invoices")
     subscription: Mapped[Subscription | None] = relationship(back_populates="invoices")

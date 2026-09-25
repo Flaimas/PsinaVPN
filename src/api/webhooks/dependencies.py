@@ -5,6 +5,8 @@ from src.core.config import settings
 from src.database.connection import get_session
 from src.database.repositories.invoice import InvoiceRepository
 from src.database.repositories.subscription import SubscriptionRepository
+from src.database.repositories.user import UserRepository
+from src.services.bonus import BonusService
 from src.services.notification import NotificationService
 from src.services.payment.yookassa import YooKassaProvider
 from src.services.payment_processor import ProcessPaymentUseCase
@@ -36,15 +38,18 @@ def get_payment_process(
 ) -> ProcessPaymentUseCase:
     sub_repo = SubscriptionRepository(session=session)
     invoice_repo = InvoiceRepository(session=session)
+    user_repo = UserRepository(session=session)
 
     subscription_service = SubscriptionService(
         vpn_client=vpn_client,
         sub_repo=sub_repo,
     )
+    bonus_service = BonusService(session=session, user_repo=user_repo)
 
     return ProcessPaymentUseCase(
         session=session,
         invoice_repo=invoice_repo,
         subscription_service=subscription_service,
         notifier=notifier,
+        bonus_service=bonus_service,
     )

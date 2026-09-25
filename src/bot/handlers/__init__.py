@@ -4,6 +4,7 @@ from .instructions import router as instructions_router
 
 # from .errors import router as errors_router
 from .payment import router as payment_router
+from .referals import router as referral_router
 from .start import router as start_router
 from .sub_management import router as sub_managament_router
 from .subscription import router as subscription_router
@@ -16,4 +17,5 @@ handlers_router.include_routers(
     payment_router,
     sub_managament_router,
     instructions_router,
+    referral_router,
 )

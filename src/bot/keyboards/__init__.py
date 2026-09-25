@@ -1,6 +1,6 @@
-from src.bot.keyboards.instructions import InstructionsInlineKeyboard
-
+from .instructions import InstructionsInlineKeyboard
 from .payment_kb import PaymentInlineKeyboard
+from .referral_menu_kb import ReferralInlineKB
 from .start_kb import StartInlineKeyboard
 from .sub_management import SubManagamentInlineKeyboard
 from .subscription_kb import SubscriptionInkineKeyBoard
@@ -12,6 +12,7 @@ class InlineKB:
     subscription = SubscriptionInkineKeyBoard()
     sub_management = SubManagamentInlineKeyboard()
     instructions = InstructionsInlineKeyboard()
+    referral = ReferralInlineKB()
 
 
 keyboards = InlineKB()

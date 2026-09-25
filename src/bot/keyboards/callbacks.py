@@ -32,3 +32,7 @@ class ManagmentSubCallback(CallbackData, prefix="sub_menu"):
 
 class InstuctionPlatform(CallbackData, prefix="instr"):
     platform: str
+
+
+class ReferralMenuCallback(CallbackData, prefix="ref_menu"):
+    pass

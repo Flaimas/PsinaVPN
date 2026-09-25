@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Any
 
 from aiogram import Bot, Dispatcher
@@ -6,6 +7,7 @@ from aiogram.types import InlineKeyboardMarkup, InputMediaPhoto
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from loguru import logger
 
+from src.bot.keyboards.callbacks import ReferralMenuCallback
 from src.common.bot_photos import DEFAULT_PHOTO
 from src.core.enums import InvoiceOperation
 from src.database.models.subscription import Subscription
@@ -36,7 +38,7 @@ class NotificationService:
         operation: InvoiceOperation,
         user_sub: Subscription,
         user_tariff: Tariff | None,
-    ) -> bool:
+    ) -> None:
         state = await self._get_state_data(telegram_id=telegram_id)
         payment_msg_id = state.get("payment_msg_id")
 
@@ -64,7 +66,7 @@ class NotificationService:
                         media=DEFAULT_PHOTO,
                         reply_markup=builder.as_markup(),
                     )
-                    return True
+                    return
                 except TelegramAPIError as e:
                     logger.warning(
                         f"Ошибка при попытке отредактировать сообщение, отправляем новое: {e}"
@@ -76,17 +78,41 @@ class NotificationService:
                 caption=text,
                 reply_markup=builder.as_markup(),
             )
-            return True
+            return
 
         except TelegramAPIError as e:
             logger.error(f"Не удалось отправить уведомление юзеру {telegram_id}: {e}")
-            return False
+            return
 
         except (ValueError, KeyError, AttributeError) as e:
             logger.exception(
                 f"Ошибка в данных или форматировании для {telegram_id}: {e}"
             )
-            return False
+            return
+
+    async def notify_referrer_bonus(
+        self, telegram_id: int, bonus_amount: Decimal
+    ) -> None:
+        text = (
+            "🎉 <b>Новый реферал принёс вам бонус!</b>\n\n"
+            "Один из приглашённых вами пользователей оплатил подписку.\n"
+            f"💰 Баланс пополнен на <b>+{int(bonus_amount)} ₽</b>\n\n"
+            "Приглашайте больше друзей и получайте бонусы за каждую оплату 👇"
+        )
+        builder = InlineKeyboardBuilder()
+        builder.button(
+            text="Пригласить друга",
+            callback_data=ReferralMenuCallback(),
+            style="success",
+        )
+        builder.button(text="Главное меню", callback_data="start")
+        builder.adjust(1, 1)
+        try:
+            await self.bot.send_message(
+                chat_id=telegram_id, text=text, reply_markup=builder.as_markup()
+            )
+        except TelegramAPIError as e:
+            logger.error(f"Не удалось отправить уведомление юзеру {telegram_id}: {e}")
 
     async def _edit_message_media(
         self,

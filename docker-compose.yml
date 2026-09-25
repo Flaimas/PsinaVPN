@@ -16,10 +16,12 @@ services:
   db:
     image: postgres:15-alpine
     restart: always
+    command: postgres -c timezone=UTC
     environment:
       POSTGRES_USER: ${DB_USER:-admin}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-admin}
       POSTGRES_DB: ${DB_NAME:-postgres}
+      TZ: UTC
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

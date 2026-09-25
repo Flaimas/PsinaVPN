@@ -1,4 +1,6 @@
-from sqlalchemy import select, update
+from decimal import Decimal
+
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
@@ -53,3 +55,18 @@ class UserRepository:
         stmt = select(User.telegram_id).where(User.is_banned)
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
+
+    async def count_referrals_by_user_id(self, user_id: int) -> int:
+        stmt = select(func.count(User.id)).where(User.referrer_id == user_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
+
+    async def increment_balance(self, user_id: int, amount: Decimal) -> User:
+        stmt = (
+            update(User)
+            .where(User.id == user_id)
+            .values(balance=User.balance + amount)
+            .returning(User)
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one()

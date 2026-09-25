@@ -1,6 +1,6 @@
 from sqlalchemy import insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import selectinload
 
 from src.core.enums import PaymentStatus
 from src.database.models.invoice import Invoice
@@ -42,10 +42,10 @@ class InvoiceRepository:
             select(Invoice)
             .where(Invoice.id == invoice_id)
             .options(
-                joinedload(Invoice.tariff),
-                joinedload(Invoice.user),
-                joinedload(Invoice.subscription),
+                selectinload(Invoice.tariff),
+                selectinload(Invoice.user),
+                selectinload(Invoice.subscription),
             )
         )
         result = await self.session.execute(query)
-        return result.unique().scalar_one()
+        return result.scalar_one()
