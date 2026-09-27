@@ -70,3 +70,12 @@ class UserRepository:
         )
         result = await self.session.execute(stmt)
         return result.scalar_one()
+
+    async def mark_test_used_is_unused(self, user_id: int) -> bool:
+        stmt = (
+            update(User)
+            .where(User.id == user_id, User.is_test_used.is_(False))
+            .values(is_test_used=True)
+        )
+        result = await self.session.execute(stmt)
+        return result.rowcount > 0  # type: ignore

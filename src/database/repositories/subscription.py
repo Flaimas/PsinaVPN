@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import contains_eager, joinedload, selectinload
 
 from src.core.enums import TariffCategory
 from src.database.models.subscription import Subscription
@@ -77,7 +77,9 @@ class SubscriptionRepository:
             select(Subscription)
             .join(User)
             .where(User.telegram_id == telegram_id)
-            .options(selectinload(Subscription.user), selectinload(Subscription.tariff))
+            .options(
+                contains_eager(Subscription.user), selectinload(Subscription.tariff)
+            )
         )
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()

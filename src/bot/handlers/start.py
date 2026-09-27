@@ -28,6 +28,7 @@ async def cmd_start(
     user = await user_repo.get_user_with_subscription(telegram_id=message.from_user.id)
 
     if user is None:
+        is_test_used = False
         referrer_id: int | None = None
         if command.args and command.args.isdigit():
             potential_referrer_id = int(command.args)
@@ -45,19 +46,13 @@ async def cmd_start(
             referrer_id=referrer_id,
         )
         user_sub = None
-        # Опционально: уведомить реферера о новом реферале (если нужно)
-        # if referrer_id:
-        #     await message.bot.send_message(
-        #         chat_id=referrer_id,
-        #         text=f"У вас новый реферал: @{user.username or user.telegram_id}!"
-        #     )
-
         text = start_texts.WELCOME_NEW_USER.format(
             username=new_user.username or "друг",
             balance=int(new_user.balance),
         )
 
     else:
+        is_test_used = user.is_test_used
         user_sub = user.subscription
         if user.subscription:
             text_sub = start_texts.format_subscriptions_text(user.subscription)
@@ -74,7 +69,9 @@ async def cmd_start(
     await message.answer_photo(
         photo=DEFAULT_PHOTO,
         caption=text,
-        reply_markup=kb.start.get_main_inline_keyboard(user_sub=user_sub),
+        reply_markup=kb.start.get_main_inline_keyboard(
+            user_sub=user_sub, is_test_used=is_test_used
+        ),
     )
 
 
@@ -108,6 +105,8 @@ async def callback_start(
         callback=callback,
         media=DEFAULT_PHOTO,
         caption=text,
-        reply_markup=kb.start.get_main_inline_keyboard(user_sub=user.subscription),
+        reply_markup=kb.start.get_main_inline_keyboard(
+            user_sub=user.subscription, is_test_used=user.is_test_used
+        ),
     )
     await callback.answer()

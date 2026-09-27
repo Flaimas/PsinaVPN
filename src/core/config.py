@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import Field, HttpUrl, TypeAdapter, computed_field, field_validator
+from pydantic import HttpUrl, TypeAdapter, computed_field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .enums import PaymentProvider
@@ -38,9 +38,8 @@ class Settings(BaseSettings):
     YOOKASSA_SHOP_ID: str
     YOOKASSA_SECRET_KEY: str
 
-    PERIODS_SUBSCRIPTION: list[int] = [30, 60, 90, 120]
-    DISCOUNT_FOR_PERIOD: list[int] | None = None
-    MAX_DISCOUNT: int = Field(default=50, gt=0, lt=100)
+    TRIAL_TARIFF_ID: int
+    TRIAL_PERIOD_DAYS: int = 5
 
     DEBUG: bool = True
 

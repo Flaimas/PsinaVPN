@@ -13,6 +13,7 @@ from src.database.repositories.tariff import TariffRepository
 from src.database.repositories.user import UserRepository
 from src.services.payment.payment import PaymentService
 from src.services.payment.providers import get_payment_providers
+from src.services.subscription import SubscriptionService
 
 
 class DbSessionMiddleware(BaseMiddleware):
@@ -46,11 +47,13 @@ class ServicesMiddleware(BaseMiddleware):
         data: dict[str, Any],
     ) -> Any:
         session = data["db_session"]
+        vpn_cliet = data["vpn_client"]
 
         user_repo = UserRepository(session)
         tariff_repo = TariffRepository(session)
         sub_repo = SubscriptionRepository(session)
         ivoice_repo = InvoiceRepository(session)
+        subscription_service = SubscriptionService(vpn_cliet, sub_repo=sub_repo)
 
         payment_service = PaymentService(
             invoice_repo=ivoice_repo,
@@ -61,6 +64,7 @@ class ServicesMiddleware(BaseMiddleware):
         data["tariff_repo"] = tariff_repo
         data["user_repo"] = user_repo
         data["sub_repo"] = sub_repo
+        data["subscription_service"] = subscription_service
 
         return await handler(event, data)
 

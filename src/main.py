@@ -33,6 +33,7 @@ async def lifespan(app: FastAPI):
 
     bot = create_bot()
     dp = create_dispatcher(redis_client, session_factory)
+    dp["vpn_client"] = vpn_client
 
     await warm_up_banned_users_cache(redis_client, session_factory)
 

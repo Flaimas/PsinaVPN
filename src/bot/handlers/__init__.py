@@ -8,6 +8,7 @@ from .referals import router as referral_router
 from .start import router as start_router
 from .sub_management import router as sub_managament_router
 from .subscription import router as subscription_router
+from .tiral import router as trial_router
 
 handlers_router = Router()
 handlers_router.include_routers(
@@ -18,4 +19,5 @@ handlers_router.include_routers(
     sub_managament_router,
     instructions_router,
     referral_router,
+    trial_router,
 )

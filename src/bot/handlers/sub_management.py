@@ -9,6 +9,7 @@ from src.bot.utils.message import edit_callback_media
 from src.common.bot_photos import DEFAULT_PHOTO
 from src.common.subscription_text import sub_managment_text
 from src.core.enums import InvoiceOperation
+from src.database.repositories.tariff import TariffRepository
 from src.database.repositories.user import UserRepository
 
 router = Router()
@@ -17,9 +18,9 @@ router = Router()
 @router.callback_query(ManagmentSubCallback.filter())
 async def sub_menu(
     callback: CallbackQuery,
-    callback_data: ManagmentSubCallback,
     kb: InlineKB,
     user_repo: UserRepository,
+    tariff_repo: TariffRepository,
     state: FSMContext,
 ):
     await callback.answer()
@@ -39,6 +40,10 @@ async def sub_menu(
             text="Ошибка, данной подписки нет у пользователя!", show_alert=True
         )
         return
+    user_tariff = await tariff_repo.get_active_tariff_by_id(
+        tariff_id=user_sub.tariff_id
+    )
+    is_tariff_active = bool(user_tariff and not user_tariff.is_promo)
 
     await state.update_data(
         user_sub_id=user_sub.id,
@@ -55,5 +60,7 @@ async def sub_menu(
         callback=callback,
         media=DEFAULT_PHOTO,
         caption=text,
-        reply_markup=kb.sub_management.managment_subscription(user_sub),
+        reply_markup=kb.sub_management.managment_subscription(
+            user_sub, is_tariff_active=is_tariff_active
+        ),
     )

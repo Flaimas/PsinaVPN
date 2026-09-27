@@ -64,9 +64,9 @@ macos:
     ⚙️ <b>Шаг 4.</b> Скопируйте ссылку на Вашу подписку и вставьте её в скачанное приложение
   downloads:
     - name: "🍏 Happ (RU App Store)"
-      url: "https://apps.apple.com/us/app/happ-proxy-utility/id6504287215"
-    - name: "🍏 Happ (GLOBAL App Store)"
       url: "https://apps.apple.com/ru/app/happ-proxy-utility/id6783623643"
+    - name: "🍏 Happ (GLOBAL App Store)"
+      url: "https://apps.apple.com/us/app/happ-proxy-utility/id6504287215"
 
 android_tv:
   label: "📺 Android TV"

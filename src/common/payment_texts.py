@@ -30,7 +30,7 @@ class PaymentTexts:
         lines.append(
             f"<b>Подтверждение заказа</b>\n\n"
             f"📋 <b>Тариф:</b> {selected_tariff.name}\n"
-            f"⏳ <b>Срок:</b> {tariff_option.period_days} дней"
+            f"⏳ <b>Срок:</b> {tariff_option.period_days} дней\n"
         )
 
         if selected_tariff.traffic_limit > 0:
@@ -46,7 +46,7 @@ class PaymentTexts:
                 f"🔥 <b>Цена со скидкой:</b> {tariff_option.price:.0f} руб."
             )
 
-        if user_subscription is not None:
+        if user_subscription is not None and not user_subscription.tariff.is_promo:
             now = datetime.now(UTC)
             expire_at = user_subscription.expired_at
             remaining_days = max(0, (expire_at - now).days)
@@ -60,7 +60,7 @@ class PaymentTexts:
             if remaining_days > 0:
                 lines.append(
                     "\n<b>⚠️ Перерасчет текущей подписки:</b>\n"
-                    f"У вас осталось <b>{remaining_days}</b> дней текущего тарифа. При переходе они конвертируются в 18 дней тарифа «{selected_tariff.name}».\n"
+                    f"У вас осталось <b>{remaining_days}</b> дней текущего тарифа. При переходе они конвертируются в {result.converted_days} дней тарифа «{selected_tariff.name}».\n"
                     f"<b>📅 Итого подписки:</b> <b>{tariff_option.period_days}</b> дней (заказ) + <b>{result.converted_days}</b> дней (перерасчет) = <b>{result.converted_days + tariff_option.period_days}</b> дней\n"
                 )
         lines.append("<b>Выберите способ оплаты:</b>")

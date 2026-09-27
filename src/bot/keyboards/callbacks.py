@@ -30,8 +30,16 @@ class ManagmentSubCallback(CallbackData, prefix="sub_menu"):
     pass
 
 
+class InstructionsCallback(CallbackData, prefix="instructions"):
+    pass
+
+
 class InstuctionPlatform(CallbackData, prefix="instr"):
     platform: str
+
+
+class TrialCallback(CallbackData, prefix="trial"):
+    pass
 
 
 class ReferralMenuCallback(CallbackData, prefix="ref_menu"):

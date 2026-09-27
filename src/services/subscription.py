@@ -34,6 +34,13 @@ class SubscriptionService:
         self.vpn_client: RemnawaveClient = vpn_client
         self.sub_repo: SubscriptionRepository = sub_repo
 
+    async def grant_trial_subscription(
+        self, user: User, tariff: Tariff, duration_days: int
+    ) -> GrantResult:
+        return await self._create_subscription(
+            duration_days=duration_days, user=user, tariff=tariff, daily_rate=Decimal(0)
+        )
+
     async def grant_subscription_for_invoice(self, invoice: Invoice) -> GrantResult:
         if not invoice.user:
             raise ValueError(f"У инвойса {invoice.id} отсутствует пользователь")

@@ -24,20 +24,22 @@ class SubManagamentInlineKeyboard:
         return builder.as_markup()
 
     def managment_subscription(
-        self, selected_user_sub: Subscription
+        self, selected_user_sub: Subscription, is_tariff_active: bool
     ) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
         builder.button(
             text="Скопировать ссылку",
             copy_text=CopyTextButton(text=selected_user_sub.sub_url),
         )
-        builder.button(
-            text="Продлить тариф",
-            callback_data=PricesTariffCallback(
-                tariff_id=selected_user_sub.tariff.id, operation=InvoiceOperation.EXTEND
-            ),
-            style=ButtonStyle.PRIMARY,
-        )
+        if is_tariff_active:
+            builder.button(
+                text="Продлить тариф",
+                callback_data=PricesTariffCallback(
+                    tariff_id=selected_user_sub.tariff.id,
+                    operation=InvoiceOperation.EXTEND,
+                ),
+                style=ButtonStyle.PRIMARY,
+            )
         builder.button(
             text="Сменить тариф",
             callback_data=TariffSelectCallback(
@@ -47,5 +49,6 @@ class SubManagamentInlineKeyboard:
         )
         builder.button(text="Инструкция по подключению", callback_data="instructions")
         builder.button(text="Назад", callback_data="start")
-        builder.adjust(1, 2, 1, 1)
+        second_row_size = 2 if is_tariff_active else 1
+        builder.adjust(1, second_row_size, 1, 1)
         return builder.as_markup()

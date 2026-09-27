@@ -12,7 +12,7 @@ class TariffRepository:
     async def get_active_tariffs(self) -> list[Tariff]:
         stmt = (
             select(Tariff)
-            .where(Tariff.is_active.is_(True))
+            .where(Tariff.is_active.is_(True), Tariff.is_promo.is_(False))
             .order_by(Tariff.traffic_limit)
         )
 
@@ -26,7 +26,7 @@ class TariffRepository:
             .options(selectinload(Tariff.options))
         )
         result = await self.session.execute(stmt)
-        return result.scalars().first()
+        return result.scalar_one_or_none()
 
     async def get_tariff_option_by_id(
         self, tariff_option_id: int
