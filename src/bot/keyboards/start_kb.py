@@ -8,6 +8,7 @@ from src.bot.keyboards.callbacks import (
     TariffSelectCallback,
     TrialCallback,
 )
+from src.core.config import settings
 from src.core.enums import InvoiceOperation
 from src.database.models.subscription import Subscription
 
@@ -42,7 +43,7 @@ class StartInlineKeyboard:
 
         builder.button(text="💸 Реферальное меню", callback_data=ReferralMenuCallback())
         builder.button(text="📖 Инструкции", callback_data="instructions")
-        builder.button(text="💬 Поддержка", callback_data="help")
+        builder.button(text="💬 Поддержка", url=settings.SUPPORT_URL)
         builder.adjust(1)
         return builder.as_markup()
 

@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     TELEGRAM_WH_BASE_URL: str | None = None
     ADMIN_IDS: list[str] | None = None
     PROXY_URL: str | None = None
+    SUPPORT_URL: str
 
     DB_NAME: str
     DB_USER: str
