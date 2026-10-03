@@ -5,8 +5,9 @@ from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload, selectinload
 
-from src.core.enums import TariffCategory
+from src.core.enums import StageNotification, TariffCategory
 from src.database.models.subscription import Subscription
+from src.database.models.subscription_notifications import SubscriptionNotification
 from src.database.models.user import User
 
 
@@ -102,3 +103,28 @@ class SubscriptionRepository:
         )
         result = await self.session.execute(stmt)
         return result.rowcount > 0  # type: ignore
+
+    async def find_pending_notification_subscriptions_with_user_relation(
+        self,
+        stage: StageNotification,
+        lower_limit: datetime,
+        upper_limit: datetime,
+    ) -> list[Subscription]:
+        stmt = (
+            select(Subscription)
+            .outerjoin(
+                SubscriptionNotification,
+                (SubscriptionNotification.subscription_id == Subscription.id)
+                & (SubscriptionNotification.stage == stage)
+                & (SubscriptionNotification.expired_at == Subscription.expired_at),
+            )
+            .where(
+                SubscriptionNotification.id.is_(None),
+                Subscription.expired_at > lower_limit,
+                Subscription.expired_at <= upper_limit,
+            )
+            .options(selectinload(Subscription.user))
+            .order_by(Subscription.expired_at)
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())

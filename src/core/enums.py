@@ -28,3 +28,16 @@ class SubscriptionStatus(str, Enum):
     DISABLED = "disabled"
     LIMITED = "limited"
     EXPIRED = "expired"
+
+
+class StageNotification(str, Enum):
+    EXPIRING_3D = "expiring_3d"
+    EXPIRING_2D = "expiring_2d"
+    EXPIRING_1D = "expiring_1d"
+
+
+class NotificationStatus(str, Enum):
+    PENDING = "pending"
+    SENDING = "sending"
+    SENT = "sent"
+    FAILED = "failed"

@@ -1,5 +1,7 @@
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from aiogram import Bot, Dispatcher
 from aiogram.exceptions import TelegramAPIError
@@ -7,7 +9,7 @@ from aiogram.types import InlineKeyboardMarkup, InputMediaPhoto
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from loguru import logger
 
-from src.bot.keyboards.callbacks import ReferralMenuCallback
+from src.bot.keyboards.callbacks import ManagmentSubCallback, ReferralMenuCallback
 from src.common.bot_photos import DEFAULT_PHOTO
 from src.core.enums import InvoiceOperation
 from src.database.models.subscription import Subscription
@@ -30,7 +32,7 @@ class NotificationService:
 
     def __init__(self, bot: Bot, dp: Dispatcher) -> None:
         self.bot = bot
-        self.dp = dp
+        self.dp: Dispatcher = dp
 
     async def notify_payment_success(
         self,
@@ -113,6 +115,38 @@ class NotificationService:
             )
         except TelegramAPIError as e:
             logger.error(f"Не удалось отправить уведомление юзеру {telegram_id}: {e}")
+
+    async def notify_subscription_expire(self, telegram_id: int, expire_at: datetime):
+        now = datetime.now(UTC)
+        DISPLAY_TZ = ZoneInfo("Europe/Moscow")
+
+        if expire_at <= now:
+            return
+        else:
+            days_left = (
+                expire_at.astimezone(DISPLAY_TZ).date()
+                - now.astimezone(DISPLAY_TZ).date()
+            ).days
+
+        if days_left == 0:
+            when = "сегодня"
+        elif days_left == 1:
+            when = "завтра"
+        else:
+            when = f"через {days_left} дн."
+
+        text = (
+            f"<b>⚠️ Ваша подписка закончится {when}!</b>\n"
+            "Продлите её, чтобы не потерять доступ к интернету без ограничений!"
+        )
+        builder = InlineKeyboardBuilder()
+        builder.button(text="Продлить", callback_data=ManagmentSubCallback())
+        await self.bot.send_photo(
+            chat_id=telegram_id,
+            photo=DEFAULT_PHOTO,
+            caption=text,
+            reply_markup=builder.as_markup(),
+        )
 
     async def _edit_message_media(
         self,

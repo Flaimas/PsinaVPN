@@ -12,6 +12,7 @@ from src.bot.factory import create_bot, create_dispatcher
 from src.core.config import settings
 from src.core.logger import setup_logging
 from src.database.connection import session_factory
+from src.scheduler.scheduler import Scheduler
 from src.services.cache import warm_up_banned_users_cache
 from src.services.payment.providers import get_payment_providers
 from src.services.vpn.client import RemnawaveClient
@@ -42,6 +43,9 @@ async def lifespan(app: FastAPI):
     app.state.dp = dp
     app.state.providers = get_payment_providers()
 
+    scheduler = Scheduler(session_factory=session_factory, dp=dp, bot=bot)
+    scheduler.start()
+
     if settings.USE_WEBHOOK:
         if not settings.telegram_web_hook_url:
             raise ValueError("Забыли указать TELEGRAM_WH_BASE_URL в .env!")
@@ -60,6 +64,8 @@ async def lifespan(app: FastAPI):
         logger.info("Бот запущен в режиме Long Polling")
 
     yield
+
+    scheduler.shutdown()
 
     logger.info("Остановка приложения...")
 

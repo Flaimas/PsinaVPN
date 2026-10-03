@@ -42,7 +42,9 @@ class Subscription(Base):
     started_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.timezone("utc", func.now())
     )
-    expired_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    expired_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
 
     user: Mapped[User] = relationship(back_populates="subscription")
     tariff: Mapped[Tariff] = relationship(back_populates="subscriptions")

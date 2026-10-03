@@ -15,13 +15,13 @@ class StartMessages:
 
     USER_CABINET: str = (
         "👋 Привет, {username}!\n\n"
-        "<blockquote>🆔 Ваш ID: {telegram_id}</blockquote>\n"
-        "💰 Баланс: <code>{balance}</code> руб.\n\n"
+        "<blockquote>🆔 Ваш ID: <code>{telegram_id}</code></blockquote>\n"
+        "💰 Баланс: <b>{balance}</b> руб.\n\n"
         "{sub_info}"
     )
 
     NO_SUBSCRIPTIONS: str = (
-        "☹️ У тебя пока нет активных подписок. Ты можешь купить её в меню!"
+        "☹️ У тебя пока нет активной подписки. Ты можешь купить её в меню!"
     )
 
     PROFILE_NOT_FOUND: str = "Профиль не найден. Пожалуйста, введите /start"
