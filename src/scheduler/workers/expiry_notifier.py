@@ -65,10 +65,10 @@ class ExpiryNotifierWorker:
             )
         if failed:
             await self.subscription_notifications_repo.mark_notify_many(
-                ids=sent, status=NotificationStatus.FAILED
+                ids=failed, status=NotificationStatus.FAILED
             )
         if retry:
             await self.subscription_notifications_repo.mark_notify_many(
-                ids=sent, status=NotificationStatus.PENDING, attempts_inc=True
+                ids=retry, status=NotificationStatus.PENDING, attempts_inc=True
             )
         await self.session.commit()
