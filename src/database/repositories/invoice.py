@@ -1,4 +1,4 @@
-from sqlalchemy import insert, select, update
+from sqlalchemy import func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -23,7 +23,7 @@ class InvoiceRepository:
                 Invoice.provider_payment_id == provider_payment_id,
                 Invoice.status == PaymentStatus.PENDING,
             )
-            .values(status=PaymentStatus.PAID)
+            .values(status=PaymentStatus.PAID, paid_at=func.now())
             .returning(Invoice)
         )
         result = await self.session.execute(stmt)
